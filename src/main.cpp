@@ -1,7 +1,16 @@
 #include <raylib.h>
-#include <print>
+
+void game_loop() {
+    while (!WindowShouldClose()) {
+        BeginDrawing();
+            ClearBackground(BLACK);
+        EndDrawing();
+    }
+}
 
 int main() {
-    std::print("Hello World!");
+    InitWindow(640, 360, "hlmrl");
+    game_loop();
+    CloseWindow();
     return 0;
 }
