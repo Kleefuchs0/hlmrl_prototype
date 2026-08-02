@@ -9,3 +9,5 @@ Makefile
 compile_commands.json
 hlmrl
 vgcore.*
+CPackSourceConfig.cmake
+CPackConfig.cmake
