@@ -1,6 +1,5 @@
 #include "GameData.hpp"
 #include "Player.hpp"
-#include "PlayerMarker.hpp"
 #include "Position.hpp"
 #include <raylib.h>
 
@@ -30,9 +29,9 @@ void game_loop(GameData &gameData) {
     }
 }
 
-Camera2D generate_default_cam() {
+Camera2D generate_default_cam(int worldWidth, int worldHeight) {
     Camera2D cam;
-    cam.offset = {0, 0};
+    cam.offset = {static_cast<float>(worldWidth) / 2, static_cast<float>(worldHeight) / 2};
     cam.rotation = 0;
     cam.target = {0, 0};
     cam.zoom = 1;
@@ -48,7 +47,7 @@ void initialize_player(GameData &gameData) {
 }
 
 int main() {
-    GameData gameData(generate_default_cam());
+    GameData gameData(generate_default_cam(640, 360));
     initialize_player(gameData);
     InitWindow(640, 360, "hlmrl");
     game_loop(gameData);
