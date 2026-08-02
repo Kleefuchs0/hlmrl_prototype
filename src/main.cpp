@@ -1,6 +1,7 @@
 #include "GameData.hpp"
 #include <raylib.h>
 
+
 void game_loop() {
     while (!WindowShouldClose()) {
         BeginDrawing();
