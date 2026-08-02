@@ -1,3 +1,4 @@
+#include "GameData.hpp"
 #include <raylib.h>
 
 void game_loop() {
@@ -9,6 +10,7 @@ void game_loop() {
 }
 
 int main() {
+    GameData gameData;
     InitWindow(640, 360, "hlmrl");
     game_loop();
     CloseWindow();
