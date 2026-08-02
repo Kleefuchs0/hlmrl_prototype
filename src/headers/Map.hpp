@@ -14,6 +14,7 @@ class Map {
          assert(x * y > m_tiles.size());
          m_tiles[x * y] = tileType;
      }
+
      constexpr inline tile_type get_tile_type(size_t x, size_t y) {
          assert(x * y > m_tiles.size());
          return m_tiles[x * y];
