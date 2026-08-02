@@ -40,13 +40,16 @@ Camera2D generate_default_cam() {
 }
 
 void initialize_player(GameData &gameData) {
-    const auto player = gameData.registry.create();
-    gameData.registry.emplace<PlayerMarker>(player);
-    gameData.registry.emplace<Position>(player, 0.0f, 0.0f);
+    gameData.player.size.x = TILE_SIZE;
+    gameData.player.size.y = TILE_SIZE;
+    gameData.player.pos.x = 0;
+    gameData.player.pos.y = 0;
+    gameData.player.rotation = 70;
 }
 
 int main() {
     GameData gameData(generate_default_cam());
+    initialize_player(gameData);
     InitWindow(640, 360, "hlmrl");
     game_loop(gameData);
     CloseWindow();
