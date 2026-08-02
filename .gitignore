@@ -13,3 +13,4 @@ CPackSourceConfig.cmake
 CPackConfig.cmake
 /.vscode
 /build
+.clangd
