@@ -1,7 +1,6 @@
 #pragma once
 
 #include "raylib.h"
-
-class Position : public Vector2 {
+class Size : public Vector2 {
     using Vector2::Vector2;
 };

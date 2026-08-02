@@ -1,4 +1,5 @@
 #include "GameData.hpp"
+#include "Player.hpp"
 #include "PlayerMarker.hpp"
 #include "Position.hpp"
 #include <raylib.h>
@@ -8,10 +9,17 @@
 void game_loop_draw_map(GameData &gameData) {
 }
 
+void game_loop_draw_player(GameData &gameData) {
+    Player &player = gameData.player;
+    DrawRectanglePro({player.pos.x, player.pos.y, player.size.x, player.size.y}, {player.size.x / 2, player.size.y / 2}, player.rotation, WHITE);
+}
+
 void game_loop_draw(GameData &gameData) {
     BeginDrawing();
     ClearBackground(BLACK);
     BeginMode2D(gameData.cam);
+    game_loop_draw_map(gameData);
+    game_loop_draw_player(gameData);
     EndMode2D();
     EndDrawing();
 }
@@ -32,7 +40,7 @@ Camera2D generate_default_cam() {
 }
 
 void initialize_player(GameData &gameData) {
-    auto player = gameData.registry.create();
+    const auto player = gameData.registry.create();
     gameData.registry.emplace<PlayerMarker>(player);
     gameData.registry.emplace<Position>(player, 0.0f, 0.0f);
 }
