@@ -11,4 +11,5 @@ hlmrl
 vgcore.*
 CPackSourceConfig.cmake
 CPackConfig.cmake
-.vscode
+/.vscode
+/build
