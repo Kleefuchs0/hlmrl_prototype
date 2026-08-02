@@ -1,5 +1,12 @@
 #include "GameData.hpp"
+#include "PlayerMarker.hpp"
+#include "Position.hpp"
 #include <raylib.h>
+
+#define TILE_SIZE 64
+
+void game_loop_draw_map(GameData &gameData) {
+}
 
 void game_loop_draw(GameData &gameData) {
     BeginDrawing();
@@ -22,6 +29,12 @@ Camera2D generate_default_cam() {
     cam.target = {0, 0};
     cam.zoom = 1;
     return cam;
+}
+
+void initialize_player(GameData &gameData) {
+    auto player = gameData.registry.create();
+    gameData.registry.emplace<PlayerMarker>(player);
+    gameData.registry.emplace<Position>(player, 0.0f, 0.0f);
 }
 
 int main() {
