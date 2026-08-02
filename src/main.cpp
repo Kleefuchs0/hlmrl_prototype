@@ -5,7 +5,9 @@
 
 #define TILE_SIZE 64
 
-void game_loop_draw_map(GameData &gameData) {
+void game_loop_draw_map(GameData &gameData, int worldWidth, int worldHeight) {
+    Player player = gameData.player;
+    Position startingPoint = {player.pos.x - static_cast<float>(worldWidth) / 2, player.pos.y - static_cast<float>(worldHeight) / 2};
 }
 
 void game_loop_draw_player(GameData &gameData) {
