@@ -2,12 +2,15 @@
 #include "Player.hpp"
 #include "Position.hpp"
 #include <raylib.h>
+#include <raymath.h>
 
 #define TILE_SIZE 64
 
 void game_loop_draw_map(GameData &gameData, int worldWidth, int worldHeight) {
     Player player = gameData.player;
     Position startingPoint = {player.pos.x - static_cast<float>(worldWidth) / 2, player.pos.y - static_cast<float>(worldHeight) / 2};
+    Position endPoint = {player.pos.x + static_cast<float>(worldWidth) / 2, player.pos.y + static_cast<float>(worldHeight) / 2};
+
 }
 
 void game_loop_draw_player(GameData &gameData) {
@@ -19,7 +22,7 @@ void game_loop_draw(GameData &gameData) {
     BeginDrawing();
     ClearBackground(BLACK);
     BeginMode2D(gameData.cam);
-    game_loop_draw_map(gameData);
+    game_loop_draw_map(gameData, gameData.worldWidth, gameData.worldHeight);
     game_loop_draw_player(gameData);
     EndMode2D();
     EndDrawing();
@@ -49,9 +52,9 @@ void initialize_player(GameData &gameData) {
 }
 
 int main() {
-    GameData gameData(generate_default_cam(640, 360));
+    GameData gameData(generate_default_cam(640, 360), 640, 360);
     initialize_player(gameData);
-    InitWindow(640, 360, "hlmrl");
+    InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     game_loop(gameData);
     CloseWindow();
     return 0;

@@ -1,6 +1,7 @@
 #pragma once
 
+#include "EVector2Derivable.hpp"
 #include "raylib.h"
-class Size : public Vector2 {
-    using Vector2::Vector2;
+class Size : public EVector2Derivable<Size> {
+    using EVector2Derivable::EVector2Derivable;
 };
