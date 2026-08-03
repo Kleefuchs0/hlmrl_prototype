@@ -2,7 +2,7 @@
 
 #include "Map.hpp"
 #include "Player.hpp"
-#include "Hitbox.hpp"
+#include "HitBox.hpp"
 #include "TickedFunction.hpp"
 #include "constants.hpp"
 #include "raylib.h"
