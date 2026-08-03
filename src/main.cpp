@@ -12,14 +12,20 @@
 
 #define TILE_SIZE 64
 
+bool first = true;
+
 namespace game {
 
     namespace loop {
 
         void input_update(GameData &gameData) {
             Player &player = gameData.player;
-            if(IsKeyPressed(KEY_F11)) {
+            if(IsKeyDown(KEY_F11) && first) {
+                first = false;
                 ToggleFullscreen();
+            }
+            if(IsKeyUp(KEY_F11)) {
+                first = true;
             }
             EVector2 calculatedVector = {0, 0};
             if(IsKeyDown(KEY_W)) {
