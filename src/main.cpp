@@ -18,7 +18,7 @@ namespace game {
         void input_update(GameData &gameData) {
             bool needsToReturnEarlier = true;
             Player &player = gameData.player;
-            Position calculatedVector = {0, 0};
+            EVector2 calculatedVector = {0, 0};
             if(IsKeyDown(KEY_W)) {
                 calculatedVector.y -= 1;
                 needsToReturnEarlier = false;

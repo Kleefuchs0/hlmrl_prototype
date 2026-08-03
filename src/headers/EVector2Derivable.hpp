@@ -9,6 +9,7 @@ class EVector2Derivable : public Vector2 {
     public:
      using Vector2::Vector2;
      constexpr inline EVector2Derivable() = default;
+     constexpr inline EVector2Derivable(const Vector2 v) : Vector2(v) {}
      constexpr inline EVector2Derivable(float x, float y)
          : Vector2{x, y} {}
      constexpr inline Derived operator +(const Vector2 &rhs) const {
