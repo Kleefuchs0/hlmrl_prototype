@@ -1,7 +1,6 @@
 #include "game_draw.hpp"
 #include "DebugConfiguration.hpp"
 #include "constants.hpp"
-#include "fmt/core.h"
 #include "raylib.h"
 #include <cstddef>
 #include <cstdlib>

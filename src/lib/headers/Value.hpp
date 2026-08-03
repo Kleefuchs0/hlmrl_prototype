@@ -1,6 +1,7 @@
 #pragma once
 
 template <typename Derived, typename T> 
+
 class Value {
     protected:
      T value_ = static_cast<T>(0);

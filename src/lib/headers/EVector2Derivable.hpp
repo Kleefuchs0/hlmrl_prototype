@@ -62,7 +62,7 @@ class EVector2Derivable : public Vector2 {
      constexpr inline void operator /=(const T &rhs) {
          *this = *this / rhs;
      }
-          constexpr inline float sum() {
+     constexpr inline float sum() {
          return this->x + this->y;
      }
      constexpr inline float dotProduct(const Vector2 &rhs) const {
