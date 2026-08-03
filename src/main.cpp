@@ -12,21 +12,12 @@
 
 #define TILE_SIZE 64
 
-bool first = true;
-
 namespace game {
 
     namespace loop {
 
-        void input_update(GameData &gameData) {
+        void game_input_update(GameData &gameData) {
             Player &player = gameData.player;
-            if(IsKeyDown(KEY_F11) && first) {
-                first = false;
-                ToggleFullscreen();
-            }
-            if(IsKeyUp(KEY_F11)) {
-                first = true;
-            }
             EVector2 calculatedVector = {0, 0};
             if(IsKeyDown(KEY_W)) {
                 calculatedVector.y -= 1;
@@ -43,6 +34,12 @@ namespace game {
             float angle = std::atan2(calculatedVector.y, calculatedVector.x);
             player.pos.x += cos(angle) * player.speed.value();
             player.pos.y += sin(angle) * player.speed.value();
+        }
+
+        void misc_update() {
+            if(IsKeyPressed(KEY_F11)) {
+                ToggleFullscreen();
+            }
         }
 
         void entry(GameData &gameData) {
@@ -73,7 +70,8 @@ void initialize_player(GameData &gameData) {
 
 int main() {
     GameData gameData(generate_default_cam(640, 360), 640, 360);
-    gameData.tickedFunctions["input"] = TickedFunction(1, &game::loop::input_update);
+    game::loop::misc_update();
+    gameData.tickedFunctions["game_input"] = TickedFunction(1, &game::loop::game_input_update);
     initialize_player(gameData);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     SetTargetFPS(1000);
