@@ -28,10 +28,13 @@ void draw::draw_player(GameData &gameData) {
 void draw::draw(GameData &gameData) {
     BeginDrawing();
     ClearBackground(BLACK);
+    BeginTextureMode(gameData.renderTexture);
     BeginMode2D(gameData.cam);
     draw_map(gameData);
     draw_player(gameData);
     EndMode2D();
+    EndTextureMode();
     EndDrawing();
+    DrawTexturePro(gameData.renderTexture.texture, {0, 0, static_cast<float>(gameData.renderTexture.texture.width), -static_cast<float>(gameData.renderTexture.texture.height)}, {0, 0, static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight())}, {0, 0}, 0.0f, gameData.screenTint);
 }
 

@@ -10,11 +10,13 @@
 #include <map>
 
 struct GameData {
-    int worldWidth;
-    int worldHeight;
-    double tickClock;
+    RenderTexture2D renderTexture;
+    int worldWidth = 0;
+    int worldHeight = 0;
+    double tickClock = 0.0;
     uint_fast64_t tick = 0;
     uint_fast16_t tickRate = 60;
+    Color screenTint = WHITE;
     Map<DEFAULT_MAP_WIDTH, DEFAULT_MAP_HEIGHT> map;
     std::map<std::string, TickedFunction> tickedFunctions;
     entt::registry registry;

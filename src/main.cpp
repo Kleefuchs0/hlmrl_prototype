@@ -89,8 +89,10 @@ int main() {
     gameData.tickedFunctions["game_input"] = TickedFunction(1, &game::loop::game_input_update);
     initialize_player(gameData);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
+    gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
     SetTargetFPS(60);
     game::loop::entry(gameData);
     CloseWindow();
+    UnloadRenderTexture(gameData.renderTexture);
     return 0;
 }
