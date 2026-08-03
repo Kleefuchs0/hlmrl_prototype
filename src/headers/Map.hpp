@@ -1,10 +1,11 @@
 #pragma once
 
+#include "constants.hpp"
 #include "tile_type.hpp"
 #include <array>
 #include <cassert>
 #include <cstddef>
-
+#include <raylib.h>
 template <size_t MAP_WIDTH, size_t MAP_HEIGHT>
 class Map {
     private:
@@ -29,5 +30,4 @@ class Map {
      constexpr inline size_t height() {
          return MAP_HEIGHT;
      }
-
 };

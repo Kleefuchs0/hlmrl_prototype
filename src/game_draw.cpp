@@ -30,6 +30,7 @@ void draw::draw_map(GameData &gameData) {
 void draw::draw_player(GameData &gameData) {
     Player &player = gameData.player;
     DrawRectanglePro({player.pos.x, player.pos.y, player.size.x, player.size.y}, {player.size.x / 2, player.size.y / 2}, player.rotation, WHITE);
+    DrawCircleV(player.pos, player.circularHitBoxRadius, RED);
 }
 
 void draw::draw(GameData &gameData) {
