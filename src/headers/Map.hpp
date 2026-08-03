@@ -30,27 +30,4 @@ class Map {
      constexpr inline size_t height() {
          return MAP_HEIGHT;
      }
-     bool check_for_collision(Rectangle object) {
-
-    for (size_t y = 0; y < MAP_HEIGHT; y++) {
-        for (size_t x = 0; x < MAP_WIDTH; x++) {
-
-            if (m_rows[y][x].value() == tile_type::WALL) {
-
-                Rectangle tile = {
-                    static_cast<float>(x * TILE_SIZE),
-                    static_cast<float>(y * TILE_SIZE),
-                    TILE_SIZE,
-                    TILE_SIZE
-                };
-
-                if (CheckCollisionRecs(object, tile)) {
-                    return true;
-                }
-            }
-        }
-    }
-
-    return false;
-}
 };
