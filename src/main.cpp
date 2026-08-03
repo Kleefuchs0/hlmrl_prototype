@@ -10,9 +10,10 @@
 namespace game {
 
     namespace loop {
+
         void tickedEngineFunctionsUpdate(GameData &gameData) {
             for (auto it = gameData.tickedFunctions.begin(); it != gameData.tickedFunctions.end(); it++) {
-                TickedFunction &tickedEngineFunction = *it.base();
+                TickedFunction &tickedEngineFunction = it->second;
                 if (gameData.tick % tickedEngineFunction.tickGoal == 0) {
                     tickedEngineFunction.function(gameData);
                 }
