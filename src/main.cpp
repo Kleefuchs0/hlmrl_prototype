@@ -2,6 +2,7 @@
 #include "Player.hpp"
 #include "Position.hpp"
 #include "TickedFunction.hpp"
+#include "game_draw.hpp"
 #include <raylib.h>
 #include <raymath.h>
 
@@ -10,15 +11,6 @@
 namespace game {
 
     namespace loop {
-
-        void ticked_function_update(GameData &gameData) {
-            for (auto it = gameData.tickedFunctions.begin(); it != gameData.tickedFunctions.end(); it++) {
-                TickedFunction &tickedEngineFunction = it->second;
-                if (gameData.tick % tickedEngineFunction.tickGoal == 0) {
-                    tickedEngineFunction.function(gameData);
-                }
-            }
-        }
 
         void input_update(GameData &gameData) {
             Player &player = gameData.player;
@@ -36,46 +28,9 @@ namespace game {
             }
         }
 
-        void tick_update(GameData &gameData) {
-            gameData.tickClock += GetFrameTime();
-            double tickTime = 1.0 / gameData.tickRate;
-            if (gameData.tickClock < tickTime) {
-                return;
-            }
-            for (size_t i = 1; i < gameData.tickClock / tickTime; i++) {
-                gameData.tick++;
-                ticked_function_update(gameData);
-            }
-            gameData.tickClock -= tickTime;
-        }
-
-
-        void draw_map(GameData &gameData, int worldWidth, int worldHeight) {
-            Player player = gameData.player;
-            Position startingPoint = {player.pos.x - static_cast<float>(worldWidth) / 2, player.pos.y - static_cast<float>(worldHeight) / 2};
-            Position endPoint = {player.pos.x + static_cast<float>(worldWidth) / 2, player.pos.y + static_cast<float>(worldHeight) / 2};
-
-        }
-
-        void draw_player(GameData &gameData) {
-            Player &player = gameData.player;
-            DrawRectanglePro({player.pos.x, player.pos.y, player.size.x, player.size.y}, {player.size.x / 2, player.size.y / 2}, player.rotation, WHITE);
-        }
-
-        void draw(GameData &gameData) {
-            input_update(gameData);
-            BeginDrawing();
-            ClearBackground(BLACK);
-            BeginMode2D(gameData.cam);
-            draw_map(gameData, gameData.worldWidth, gameData.worldHeight);
-            draw_player(gameData);
-            EndMode2D();
-            EndDrawing();
-        }
-
         void entry(GameData &gameData) {
             while (!WindowShouldClose()) {
-                draw(gameData);
+                draw::draw(gameData);
             }
         }
     }
@@ -100,6 +55,7 @@ void initialize_player(GameData &gameData) {
 
 int main() {
     GameData gameData(generate_default_cam(640, 360), 640, 360);
+    gameData.tickedFunctions["input"] = TickedFunction(60, &game::loop::input_update);
     initialize_player(gameData);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     game::loop::entry(gameData);
