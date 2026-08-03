@@ -156,11 +156,17 @@ void initialize_player(Player &player) {
 }
 
 void initialize_map(GameData &gameData) {
-    gameData.map.set_tile_type(0, 0, TileType(tile_type::WALL));
-    gameData.map.set_tile_type(1, 0, TileType(tile_type::WALL));
-    gameData.map.set_tile_type(2, 0, TileType(tile_type::WALL));
-    gameData.map.set_tile_type(0, 1, TileType(tile_type::WALL));
-    gameData.map.set_tile_type(0, 2, TileType(tile_type::WALL));
+    for (size_t x = 0; x <= 100; x++) {
+        gameData.map.set_tile_type(x, 0, TileType(tile_type::WALL));
+        gameData.map.set_tile_type(x, 100, TileType(tile_type::WALL));
+    }
+    for (size_t y = 1; y <= 100; y++) {
+        gameData.map.set_tile_type(0, y, TileType(tile_type::WALL));
+        gameData.map.set_tile_type(100, y, TileType(tile_type::WALL));
+    }
+    for (size_t x = 1; x < 100; x++) 
+        for (size_t y = 1; y < 100; y++)
+            gameData.map.set_tile_type(x, y, TileType(tile_type::FLOOR));
 }
 
 int main() {

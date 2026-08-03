@@ -11,6 +11,7 @@
 
 struct GameData {
     RenderTexture2D renderTexture;
+    Color backgroundColor = BLUE;
     int worldWidth = 0;
     int worldHeight = 0;
     double tickClock = 0.0;

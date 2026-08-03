@@ -35,9 +35,10 @@ void draw::draw_map(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map, GameData &g
                 case tile_type::EMPTY:
                     continue;           // Skip empty ones
                 case tile_type::WALL:
-                    color = RED;
-                case tile_type::FLOOR:
                     color = GRAY;
+                    break;
+                case tile_type::FLOOR:
+                    color = DARKBLUE;
                     break;
             }
             DrawRectanglePro({static_cast<float>(x * TILE_SIZE), static_cast<float>(y * TILE_SIZE), TILE_SIZE, TILE_SIZE}, {0, 0}, 0, color);
@@ -56,7 +57,7 @@ void draw::draw(GameData &gameData, DebugConfiguration &debugConfiguration) {
     ClearBackground(BLACK);
     BeginTextureMode(gameData.renderTexture);
     BeginMode2D(gameData.cam);
-    ClearBackground(BLACK);
+    ClearBackground(gameData.backgroundColor);
     draw_map(gameData.player, gameData.map, gameData);
     draw_player(gameData);
     EndMode2D();
