@@ -2,6 +2,7 @@
 
 #include "Map.hpp"
 #include "Player.hpp"
+#include "Hitbox.hpp"
 #include "TickedFunction.hpp"
 #include "constants.hpp"
 #include "raylib.h"
@@ -21,6 +22,7 @@ struct GameData {
     std::map<std::string, TickedFunction> tickedFunctions;
     entt::registry registry;
     Camera2D cam;
+    Hitbox hitbox;
     Player player;
     GameData(const Camera2D cam, const int worldWidth, const int worldHeight) : worldWidth(worldWidth), worldHeight(worldHeight), cam(cam) {
     }

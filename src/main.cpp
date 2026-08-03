@@ -20,6 +20,8 @@ namespace game {
             player.rotation = std::atan2(mousePositionRelative.y, mousePositionRelative.x) * (180 / M_PI);
             EVector2 calculatedVector = {0, 0};
             bool noInput = true;
+            Vector2 tempposition = player.pos;
+            
             if(IsKeyDown(KEY_W)) {
                 calculatedVector.y -= 1;
                 noInput = false;
@@ -28,21 +30,29 @@ namespace game {
                 calculatedVector.y += 1;
                 noInput = false;
             }
-            if(IsKeyDown(KEY_A)) {
-                calculatedVector.x -= 1;
-                noInput = false;
-            }
             if(IsKeyDown(KEY_D)) {
                 calculatedVector.x += 1;
+                noInput = false;
+            }
+            if(IsKeyDown(KEY_A)) {
+                calculatedVector.x -= 1;
                 noInput = false;
             }
 
             if (noInput)
                 return;
 
+
             float angle = std::atan2(calculatedVector.y, calculatedVector.x);
+
             player.pos.x += cos(angle) * player.speed.value();
+            if(gameData.map.check_for_collision(player.hitbox.getRectangle(player.pos))) {
+            player.pos.x = tempposition.x;
+            }
             player.pos.y += sin(angle) * player.speed.value();
+            if(gameData.map.check_for_collision(player.hitbox.getRectangle(player.pos))) {
+            player.pos.y = tempposition.y;
+            }
             gameData.cam.target = player.pos;
         }
 
@@ -82,6 +92,8 @@ void initialize_player(GameData &gameData) {
     gameData.player.pos.y = 0;
     gameData.player.rotation = 70;
     gameData.player.speed = 5;
+    gameData.player.hitbox.size = gameData.player.size;
+    gameData.player.hitbox.color = {255, 255, 255, 0};
 }
 
 void initialize_map(GameData &gameData) {

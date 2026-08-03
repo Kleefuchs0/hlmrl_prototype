@@ -1,5 +1,6 @@
 #include "game_draw.hpp"
 #include "constants.hpp"
+#include "headers/HitBox.hpp"
 #include "raylib.h"
 #include <cstdlib>
 
@@ -30,6 +31,7 @@ void draw::draw_map(GameData &gameData) {
 void draw::draw_player(GameData &gameData) {
     Player &player = gameData.player;
     DrawRectanglePro({player.pos.x, player.pos.y, player.size.x, player.size.y}, {player.size.x / 2, player.size.y / 2}, player.rotation, WHITE);
+    DrawRectangleRec(player.hitbox.getRectangle(player.pos), player.hitbox.color);
 }
 
 void draw::draw(GameData &gameData) {

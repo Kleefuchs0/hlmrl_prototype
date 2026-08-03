@@ -1,10 +1,11 @@
 #pragma once
 
+#include "constants.hpp"
 #include "tile_type.hpp"
 #include <array>
 #include <cassert>
 #include <cstddef>
-
+#include <raylib.h>
 template <size_t MAP_WIDTH, size_t MAP_HEIGHT>
 class Map {
     private:
@@ -29,5 +30,27 @@ class Map {
      constexpr inline size_t height() {
          return MAP_HEIGHT;
      }
+     bool check_for_collision(Rectangle object) {
 
+    for (size_t y = 0; y < MAP_HEIGHT; y++) {
+        for (size_t x = 0; x < MAP_WIDTH; x++) {
+
+            if (m_rows[y][x].value() == tile_type::WALL) {
+
+                Rectangle tile = {
+                    static_cast<float>(x * TILE_SIZE),
+                    static_cast<float>(y * TILE_SIZE),
+                    TILE_SIZE,
+                    TILE_SIZE
+                };
+
+                if (CheckCollisionRecs(object, tile)) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
 };
