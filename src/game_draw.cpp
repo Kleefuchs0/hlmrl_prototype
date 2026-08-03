@@ -11,7 +11,7 @@ void draw::draw_map(GameData &gameData) {
     for (size_t y = 0; y < map.height(); y++) {
         for (size_t x = 0; x < map.width(); x++) {
             Color color;
-            color.a = 1;
+            color.a = 255;
             color.r = random();
             color.b = random();
             color.g = random();
