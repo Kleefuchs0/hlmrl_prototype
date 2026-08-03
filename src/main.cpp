@@ -6,31 +6,37 @@
 
 #define TILE_SIZE 64
 
-void game_loop_draw_map(GameData &gameData, int worldWidth, int worldHeight) {
-    Player player = gameData.player;
-    Position startingPoint = {player.pos.x - static_cast<float>(worldWidth) / 2, player.pos.y - static_cast<float>(worldHeight) / 2};
-    Position endPoint = {player.pos.x + static_cast<float>(worldWidth) / 2, player.pos.y + static_cast<float>(worldHeight) / 2};
+namespace game {
 
-}
+    namespace loop {
 
-void game_loop_draw_player(GameData &gameData) {
-    Player &player = gameData.player;
-    DrawRectanglePro({player.pos.x, player.pos.y, player.size.x, player.size.y}, {player.size.x / 2, player.size.y / 2}, player.rotation, WHITE);
-}
+        void draw_map(GameData &gameData, int worldWidth, int worldHeight) {
+            Player player = gameData.player;
+            Position startingPoint = {player.pos.x - static_cast<float>(worldWidth) / 2, player.pos.y - static_cast<float>(worldHeight) / 2};
+            Position endPoint = {player.pos.x + static_cast<float>(worldWidth) / 2, player.pos.y + static_cast<float>(worldHeight) / 2};
 
-void game_loop_draw(GameData &gameData) {
-    BeginDrawing();
-    ClearBackground(BLACK);
-    BeginMode2D(gameData.cam);
-    game_loop_draw_map(gameData, gameData.worldWidth, gameData.worldHeight);
-    game_loop_draw_player(gameData);
-    EndMode2D();
-    EndDrawing();
-}
+        }
 
-void game_loop(GameData &gameData) {
-    while (!WindowShouldClose()) {
-        game_loop_draw(gameData);
+        void draw_player(GameData &gameData) {
+            Player &player = gameData.player;
+            DrawRectanglePro({player.pos.x, player.pos.y, player.size.x, player.size.y}, {player.size.x / 2, player.size.y / 2}, player.rotation, WHITE);
+        }
+
+        void draw(GameData &gameData) {
+            BeginDrawing();
+            ClearBackground(BLACK);
+            BeginMode2D(gameData.cam);
+            draw_map(gameData, gameData.worldWidth, gameData.worldHeight);
+            draw_player(gameData);
+            EndMode2D();
+            EndDrawing();
+        }
+
+        void entry(GameData &gameData) {
+            while (!WindowShouldClose()) {
+                draw(gameData);
+            }
+        }
     }
 }
 
@@ -55,7 +61,7 @@ int main() {
     GameData gameData(generate_default_cam(640, 360), 640, 360);
     initialize_player(gameData);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
-    game_loop(gameData);
+    game::loop::entry(gameData);
     CloseWindow();
     return 0;
 }
