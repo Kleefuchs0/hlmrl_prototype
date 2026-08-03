@@ -2,17 +2,70 @@
 #include "GameData.hpp"
 #include "Player.hpp"
 #include "Position.hpp"
+#include "constants.hpp"
 #include "game_tick.hpp"
 #include "TickedFunction.hpp"
 #include "game_draw.hpp"
 #include "tile_type.hpp"
 #include <cmath>
+#include <cstddef>
 #include <raylib.h>
 #include <raymath.h>
 
 namespace game {
 
     namespace loop {
+
+
+        template <size_t MAP_WIDTH, size_t MAP_HEIGHT>
+        std::vector<TileType> get_player_map_collision(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map) {
+
+            for (size_t y = 0; y < MAP_HEIGHT; y++) {
+                for (size_t x = 0; x < MAP_WIDTH; x++) {
+
+                    if (map.get_tile_type(x, y).value() == tile_type::WALL) {
+
+                        Rectangle tile = {
+                            static_cast<float>(x * TILE_SIZE),
+                            static_cast<float>(y * TILE_SIZE),
+                            TILE_SIZE,
+                            TILE_SIZE
+                        };
+
+                        if (CheckCollisionCircleRec(player.pos, player.circularHitBoxRadius, tile)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        template <size_t MAP_WIDTH, size_t MAP_HEIGHT>
+        bool check_player_map_collision(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map) {
+
+            for (size_t y = 0; y < MAP_HEIGHT; y++) {
+                for (size_t x = 0; x < MAP_WIDTH; x++) {
+
+                    if (map.get_tile_type(x, y).value() == tile_type::WALL) {
+
+                        Rectangle tile = {
+                            static_cast<float>(x * TILE_SIZE),
+                            static_cast<float>(y * TILE_SIZE),
+                            TILE_SIZE,
+                            TILE_SIZE
+                        };
+
+                        if (CheckCollisionCircleRec(player.pos, player.circularHitBoxRadius, tile)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
 
         void game_input_update_player(GameData &gameData) {
             Player &player = gameData.player;
@@ -46,12 +99,12 @@ namespace game {
             float angle = std::atan2(calculatedVector.y, calculatedVector.x);
 
             player.pos.x += cos(angle) * player.speed.value();
-            if(gameData.map.check_for_collision(player.hitbox.getRectangle(player.pos))) {
-            player.pos.x = tempposition.x;
+            if(check_player_map_collision(player, gameData.map)) {
+                player.pos.x = tempposition.x;
             }
             player.pos.y += sin(angle) * player.speed.value();
-            if(gameData.map.check_for_collision(player.hitbox.getRectangle(player.pos))) {
-            player.pos.y = tempposition.y;
+            if(check_player_map_collision(player, gameData.map)) {
+                player.pos.y = tempposition.y;
             }
             gameData.cam.target = player.pos;
         }
@@ -91,24 +144,26 @@ void initialize_player(GameData &gameData) {
     gameData.player.pos.x = 0;
     gameData.player.pos.y = 0;
     gameData.player.rotation = 70;
-    gameData.player.speed = 5;
-    gameData.player.hitbox.size = gameData.player.size;
-    gameData.player.hitbox.color = {255, 255, 255, 0};
+    gameData.player.speed = 2.5;
+    gameData.player.circularHitBoxRadius = static_cast<float>(TILE_SIZE) / 2.5;
 }
 
 void initialize_map(GameData &gameData) {
     gameData.map.set_tile_type(2, 2, TileType(tile_type::WALL));
+    gameData.map.set_tile_type(2, 3, TileType(tile_type::WALL));
+    gameData.map.set_tile_type(2, 4, TileType(tile_type::WALL));
+    gameData.map.set_tile_type(1, 4, TileType(tile_type::WALL));
 }
 
 int main() {
     GameData gameData(generate_default_cam(640, 360), 640, 360);
-    gameData.tickRate = 60;
+    gameData.tickRate = 128;
     gameData.tickedFunctions["game_input"] = TickedFunction(1, &game::loop::game_input_update);
     initialize_player(gameData);
     initialize_map(gameData);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
-    SetTargetFPS(60);
+    SetTargetFPS(180);
     SetWindowSize(1280, 720);
     game::loop::entry(gameData);
     CloseWindow();
