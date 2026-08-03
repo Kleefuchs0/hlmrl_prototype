@@ -9,11 +9,11 @@ void tick::tick_update(GameData &gameData) {
     if (gameData.tickClock < tickTime) {
         return;
     }
-    for (size_t i = 1; i < gameData.tickClock / tickTime; i++) {
+    while(gameData.tickClock >= tickTime) {
         gameData.tick++;
         ticked_function_update(gameData);
+        gameData.tickClock -= tickTime;
     }
-    gameData.tickClock = 0;
 }
 
 

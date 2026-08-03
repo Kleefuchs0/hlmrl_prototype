@@ -5,28 +5,17 @@
 #include "game_tick.hpp"
 #include "TickedFunction.hpp"
 #include "game_draw.hpp"
-#include <functional>
 #include <raylib.h>
 #include <raymath.h>
-#include <thread>
 
 #define TILE_SIZE 64
-
-bool first = true;
 
 namespace game {
 
     namespace loop {
 
-        void input_update(GameData &gameData) {
+        void game_input_update(GameData &gameData) {
             Player &player = gameData.player;
-            if(IsKeyDown(KEY_F11) && first) {
-                first = false;
-                ToggleFullscreen();
-            }
-            if(IsKeyUp(KEY_F11)) {
-                first = true;
-            }
             EVector2 calculatedVector = {0, 0};
             if(IsKeyDown(KEY_W)) {
                 calculatedVector.y -= 1;
@@ -73,7 +62,7 @@ void initialize_player(GameData &gameData) {
 
 int main() {
     GameData gameData(generate_default_cam(640, 360), 640, 360);
-    gameData.tickedFunctions["input"] = TickedFunction(1, &game::loop::input_update);
+    gameData.tickedFunctions["input"] = TickedFunction(1, &game::loop::game_input_update);
     initialize_player(gameData);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     SetTargetFPS(1000);
