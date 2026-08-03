@@ -8,5 +8,6 @@ struct Player {
     MovementSpeed speed;
     Position pos;
     Size size;
+    float hitBoxRadius;
     float rotation;
 };
