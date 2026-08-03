@@ -11,6 +11,8 @@ hlmrl
 vgcore.*
 CPackSourceConfig.cmake
 CPackConfig.cmake
-/.vscode
-/build
+.vscode
+build
 .clangd
+libhlmrl_lib.a
+hlmrl_test
