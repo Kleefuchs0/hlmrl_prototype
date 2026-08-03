@@ -28,7 +28,7 @@
             wayland-scanner
             libffi
             libGL
-            gcc
+            gcc16
             clang-tools
             clang
             gnumake
