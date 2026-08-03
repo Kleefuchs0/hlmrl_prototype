@@ -21,7 +21,7 @@ namespace game {
 
 
         template <size_t MAP_WIDTH, size_t MAP_HEIGHT>
-        std::vector<TileType> get_player_map_collision(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map, DebugConfiguration &debugCfg) {
+        std::vector<TileType> get_player_map_collision_tiles(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map, DebugConfiguration &debugCfg) {
             std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> playerMapCoordinatesRange;
 
             playerMapCoordinatesRange.first = {(player.pos.x - player.circularHitBoxRadius) / TILE_SIZE, (player.pos.y - player.circularHitBoxRadius) / TILE_SIZE};
@@ -57,7 +57,7 @@ namespace game {
             Position oldPlayerPos = player.pos;
             player.pos.x += change.x;
             {
-                std::vector<TileType> collisionTiles = get_player_map_collision(player, map, debugConfiguration);
+                std::vector<TileType> collisionTiles = get_player_map_collision_tiles(player, map, debugConfiguration);
                 if(std::count(collisionTiles.begin(), collisionTiles.end(), TileType(tile_type::WALL))) {
                     player.pos.x = oldPlayerPos.x;
                     player.deltaSpeed.x *= -0.05;
@@ -65,7 +65,7 @@ namespace game {
             }
             player.pos.y += change.y;
             {
-                std::vector<TileType> collisionTiles = get_player_map_collision(player, map, debugConfiguration);
+                std::vector<TileType> collisionTiles = get_player_map_collision_tiles(player, map, debugConfiguration);
                 if(std::count(collisionTiles.begin(), collisionTiles.end(), TileType(tile_type::WALL))) {
                     player.pos.y = oldPlayerPos.y;
                     player.deltaSpeed.y *= -0.05;
@@ -122,6 +122,18 @@ namespace game {
                 ToggleFullscreen();
             if (IsKeyPressed(KEY_F3))
                 debugConfiguration.drawFPS = !debugConfiguration.drawFPS;
+            if (IsKeyPressed(KEY_F10)) {
+                if (IsKeyDown(KEY_LEFT_SHIFT) && debugConfiguration.drawHitBoxes) {
+                    debugConfiguration.currentHitBoxColor++;
+
+                    if (debugConfiguration.currentHitBoxColor >= debugConfiguration.avaivableHitBoxColors.size()) 
+                        debugConfiguration.currentHitBoxColor = 0;
+
+                    debugConfiguration.hitBoxColor = debugConfiguration.avaivableHitBoxColors[debugConfiguration.currentHitBoxColor];
+                } else {
+                    debugConfiguration.drawHitBoxes = !debugConfiguration.drawHitBoxes;
+                }
+            }
 
         }
 

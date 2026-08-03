@@ -46,10 +46,11 @@ void draw::draw_map(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map, GameData &g
     }
 }
 
-void draw::draw_player(GameData &gameData) {
+void draw::draw_player(GameData &gameData, DebugConfiguration &debugConfiguration) {
     Player &player = gameData.player;
     DrawRectanglePro({player.pos.x, player.pos.y, player.size.x, player.size.y}, {player.size.x / 2, player.size.y / 2}, player.rotation, WHITE);
-    DrawCircleV(player.pos, player.circularHitBoxRadius, RED);
+    if (debugConfiguration.drawHitBoxes)
+        DrawCircleV(player.pos, player.circularHitBoxRadius, debugConfiguration.hitBoxColor);
 }
 
 void draw::draw(GameData &gameData, DebugConfiguration &debugConfiguration) {
@@ -59,7 +60,7 @@ void draw::draw(GameData &gameData, DebugConfiguration &debugConfiguration) {
     BeginMode2D(gameData.cam);
     ClearBackground(gameData.backgroundColor);
     draw_map(gameData.player, gameData.map, gameData);
-    draw_player(gameData);
+    draw_player(gameData, debugConfiguration);
     EndMode2D();
     if (debugConfiguration.drawFPS)
         DrawFPS(10, 10);
