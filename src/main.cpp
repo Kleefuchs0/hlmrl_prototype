@@ -1,13 +1,14 @@
 #include "EVector2.hpp"
-#include "EVector2Derivable.hpp"
 #include "GameData.hpp"
 #include "Player.hpp"
 #include "Position.hpp"
 #include "game_tick.hpp"
 #include "TickedFunction.hpp"
 #include "game_draw.hpp"
+#include <functional>
 #include <raylib.h>
 #include <raymath.h>
+#include <thread>
 
 #define TILE_SIZE 64
 
@@ -36,7 +37,6 @@ namespace game {
             float angle = std::atan2(calculatedVector.y, calculatedVector.x);
             player.pos.x += cos(angle) * player.speed.value();
             player.pos.y += sin(angle) * player.speed.value();
-            gameData.cam.target = player.pos;
         }
 
         void entry(GameData &gameData) {
