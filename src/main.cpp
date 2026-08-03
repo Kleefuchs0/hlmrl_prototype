@@ -25,15 +25,12 @@ namespace game {
 
                 playerMapCoordinatesRange.first = {(player.pos.x - player.circularHitBoxRadius) / TILE_SIZE, (player.pos.y - player.circularHitBoxRadius) / TILE_SIZE};
                 playerMapCoordinatesRange.second = {std::ceil((player.pos.x + player.circularHitBoxRadius) / TILE_SIZE), std::ceil((player.pos.y + player.circularHitBoxRadius) / TILE_SIZE)};
-
                 std::vector<TileType> collisionTileTypes;
 
                 for (size_t y = playerMapCoordinatesRange.first.second; y < playerMapCoordinatesRange.second.second; y++) {
                     for (size_t x = playerMapCoordinatesRange.first.first; x < playerMapCoordinatesRange.second.first; x++) {
 
-                        if (x > MAP_WIDTH || y > MAP_HEIGHT) {
-                            if (debugCfg.logLevel >= LogLevel::WARNING)
-                                fmt::println("Player has escaped the confines of the map at: {}, {}", x, y);
+                        if (x >= MAP_WIDTH || y >= MAP_HEIGHT) {
                             continue;
                         }
 
@@ -85,14 +82,14 @@ namespace game {
 
             float angle = std::atan2(calculatedVector.y, calculatedVector.x);
 
-            player.pos.x += cos(angle) * player.speed.value();
+            player.pos.x += cos(angle) * player.movementSpeed.value();
             {
                 std::vector<TileType> collisionTiles = get_player_map_collision(player, gameData.map, gameData.debugConfiguration);
                 if(std::count(collisionTiles.begin(), collisionTiles.end(), TileType(tile_type::WALL))) {
                     player.pos.x = tempposition.x;
                 }
             }
-            player.pos.y += sin(angle) * player.speed.value();
+            player.pos.y += sin(angle) * player.movementSpeed.value();
             {
                 std::vector<TileType> collisionTiles = get_player_map_collision(player, gameData.map, gameData.debugConfiguration);
                 if(std::count(collisionTiles.begin(), collisionTiles.end(), TileType(tile_type::WALL))) {
@@ -137,7 +134,7 @@ void initialize_player(GameData &gameData) {
     gameData.player.pos.x = TILE_SIZE * 2;
     gameData.player.pos.y = TILE_SIZE * 2;
     gameData.player.rotation = 70;
-    gameData.player.speed = 2.5;
+    gameData.player.movementSpeed = 2.5;
     gameData.player.circularHitBoxRadius = static_cast<float>(TILE_SIZE) / 2.5;
 }
 
@@ -159,8 +156,14 @@ int main() {
     gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
     SetTargetFPS(180);
     SetWindowSize(1280, 720);
+    if (gameData.debugConfiguration.logLevel >= LogLevel::DEBUG)
+        fmt::println("Entering game-loop");
     game::loop::entry(gameData);
+    if (gameData.debugConfiguration.logLevel >= LogLevel::DEBUG)
+        fmt::println("Closing and unloading game");
     CloseWindow();
     UnloadRenderTexture(gameData.renderTexture);
+    if (gameData.debugConfiguration.logLevel >= LogLevel::DEBUG)
+        fmt::println("Unlaoded everything");
     return 0;
 }
