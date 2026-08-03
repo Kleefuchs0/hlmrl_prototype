@@ -11,7 +11,7 @@ namespace game {
 
     namespace loop {
 
-        void tickedEngineFunctionsUpdate(GameData &gameData) {
+        void ticked_function_update(GameData &gameData) {
             for (auto it = gameData.tickedFunctions.begin(); it != gameData.tickedFunctions.end(); it++) {
                 TickedFunction &tickedEngineFunction = it->second;
                 if (gameData.tick % tickedEngineFunction.tickGoal == 0) {
@@ -20,7 +20,7 @@ namespace game {
             }
         }
 
-        void tickUpdate(GameData &gameData) {
+        void tick_update(GameData &gameData) {
             gameData.tickClock += GetFrameTime();
             double tickTime = 1.0 / gameData.tickRate;
             if (gameData.tickClock < tickTime) {
@@ -28,9 +28,9 @@ namespace game {
             }
             for (size_t i = 1; i < gameData.tickClock / tickTime; i++) {
                 gameData.tick++;
-                tickedEngineFunctionsUpdate(gameData);
+                ticked_function_update(gameData);
             }
-            gameData.tickClock = 0;
+            gameData.tickClock -= tickTime;
         }
 
 
