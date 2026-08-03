@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-class GameData;
+struct GameData;
 
 class TickedFunction {
     public:

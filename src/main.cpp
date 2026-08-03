@@ -9,8 +9,6 @@
 #include <raylib.h>
 #include <raymath.h>
 
-#define TILE_SIZE 64
-
 namespace game {
 
     namespace loop {

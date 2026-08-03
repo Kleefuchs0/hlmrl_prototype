@@ -8,7 +8,7 @@ namespace game {
 
         namespace draw {
 
-            void draw_map(const GameData &gameData);
+            void draw_map(GameData &gameData);
 
             void draw_player(GameData &gameData);
 

@@ -2,6 +2,6 @@
 
 #include "Value.hpp"
 
-class Speed : public Value<Speed, float> {
+class MovementSpeed : public Value<MovementSpeed, float> {
     using Value::Value;
 };

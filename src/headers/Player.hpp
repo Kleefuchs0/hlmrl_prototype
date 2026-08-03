@@ -2,10 +2,10 @@
 
 #include "Position.hpp"
 #include "Size.hpp"
-#include "Speed.hpp"
+#include "MovementSpeed.hpp"
 
 struct Player {
-    Speed speed;
+    MovementSpeed speed;
     Position pos;
     Size size;
     float rotation;
