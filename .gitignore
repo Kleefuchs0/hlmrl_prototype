@@ -11,6 +11,7 @@ hlmrl
 vgcore.*
 CPackSourceConfig.cmake
 CPackConfig.cmake
+CTestTestfile.cmake
 .vscode
 build
 .clangd
