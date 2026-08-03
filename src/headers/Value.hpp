@@ -1,11 +1,9 @@
 #pragma once
 
-#include <cmath>
-
 template <typename Derived, typename T> 
 class Value {
-    private:
-     T value_ = 0;
+    protected:
+     T value_ = static_cast<T>(0);
     public:
      constexpr inline Value() = default;
      constexpr inline Value(T v) : value_(v) {};

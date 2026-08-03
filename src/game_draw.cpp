@@ -10,11 +10,18 @@ void draw::draw_map(GameData &gameData) {
     
     for (size_t y = 0; y < map.height(); y++) {
         for (size_t x = 0; x < map.width(); x++) {
-            Color color;
-            color.a = 255;
-            color.r = random();
-            color.b = random();
-            color.g = random();
+            TileType tileType = map.get_tile_type(x, y);
+            Color color = WHITE;
+            switch (tileType.value()) {
+                case tile_type::EMPTY:
+                    color = {0, 0, 0, 0};
+                    break;
+                case tile_type::WALL:
+                    color = RED;
+                case tile_type::FLOOR:
+                    color = GRAY;
+                    break;
+            }
             DrawRectanglePro({static_cast<float>(x * TILE_SIZE), static_cast<float>(y * TILE_SIZE), TILE_SIZE, TILE_SIZE}, {0, 0}, 0, color);
         }
     }
@@ -30,6 +37,7 @@ void draw::draw(GameData &gameData) {
     ClearBackground(BLACK);
     BeginTextureMode(gameData.renderTexture);
     BeginMode2D(gameData.cam);
+    ClearBackground(BLACK);
     draw_map(gameData);
     draw_player(gameData);
     EndMode2D();

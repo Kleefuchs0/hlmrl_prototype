@@ -5,6 +5,7 @@
 #include "game_tick.hpp"
 #include "TickedFunction.hpp"
 #include "game_draw.hpp"
+#include "tile_type.hpp"
 #include <cmath>
 #include <raylib.h>
 #include <raymath.h>
@@ -15,7 +16,7 @@ namespace game {
 
         void game_input_update_player(GameData &gameData) {
             Player &player = gameData.player;
-            Position mousePositionRelative = GetScreenToWorld2D(GetMousePosition(), gameData.cam) - player.pos;
+            Position mousePositionRelative = GetScreenToWorld2D(GetMousePosition() / (static_cast<float>(GetScreenWidth()) / gameData.worldWidth), gameData.cam) - player.pos;
             player.rotation = std::atan2(mousePositionRelative.y, mousePositionRelative.x) * (180 / M_PI);
             EVector2 calculatedVector = {0, 0};
             bool noInput = true;
@@ -83,14 +84,20 @@ void initialize_player(GameData &gameData) {
     gameData.player.speed = 5;
 }
 
+void initialize_map(GameData &gameData) {
+    gameData.map.set_tile_type(2, 2, TileType(tile_type::WALL));
+}
+
 int main() {
     GameData gameData(generate_default_cam(640, 360), 640, 360);
     gameData.tickRate = 60;
     gameData.tickedFunctions["game_input"] = TickedFunction(1, &game::loop::game_input_update);
     initialize_player(gameData);
+    initialize_map(gameData);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
     SetTargetFPS(60);
+    SetWindowSize(1280, 720);
     game::loop::entry(gameData);
     CloseWindow();
     UnloadRenderTexture(gameData.renderTexture);
