@@ -58,7 +58,6 @@ namespace game {
             player.pos.x += change.x;
             {
                 std::vector<TileType> collisionTiles = get_player_map_collision(player, map, debugConfiguration);
-                fmt::println("{}", player.deltaSpeed.x);
                 if(std::count(collisionTiles.begin(), collisionTiles.end(), TileType(tile_type::WALL))) {
                     player.pos.x = oldPlayerPos.x;
                     player.deltaSpeed.x *= -0.05;
