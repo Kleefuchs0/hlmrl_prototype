@@ -19,13 +19,11 @@ class Value {
      constexpr inline bool operator ==(const Derived &rhs) const {
          return this->value_ == rhs.value();
      }
-     friend constexpr bool operator==(const Derived& lhs,
-             const Derived& rhs)
+     friend constexpr bool operator==(const Derived& lhs, const Derived& rhs)
      {
          return lhs.value() == rhs.value();
      }
-     friend constexpr auto operator<=>(const Derived& lhs,
-             const Derived& rhs)
+     friend constexpr auto operator<=>(const Derived& lhs, const Derived& rhs)
      {
          return lhs.value() <=> rhs.value();
      }
