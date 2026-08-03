@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 template <typename Derived, typename T> 
 class Value {
     private:

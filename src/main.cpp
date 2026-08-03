@@ -1,3 +1,5 @@
+#include "EVector2.hpp"
+#include "EVector2Derivable.hpp"
 #include "GameData.hpp"
 #include "Player.hpp"
 #include "Position.hpp"
@@ -14,19 +16,30 @@ namespace game {
     namespace loop {
 
         void input_update(GameData &gameData) {
+            bool needsToReturnEarlier = true;
             Player &player = gameData.player;
+            Position calculatedVector = {0, 0};
             if(IsKeyDown(KEY_W)) {
-                player.pos.y -= 2;
-            }
-            if(IsKeyDown(KEY_A)) {
-                player.pos.x -= 2;
+                calculatedVector.y -= 1;
+                needsToReturnEarlier = false;
             }
             if(IsKeyDown(KEY_S)) {
-                player.pos.y += 2;
+                calculatedVector.y += 1;
+                needsToReturnEarlier = false;
+            }
+            if(IsKeyDown(KEY_A)) {
+                calculatedVector.x -= 1;
+                needsToReturnEarlier = false;
             }
             if(IsKeyDown(KEY_D)) {
-                player.pos.x += 2;
+                calculatedVector.x += 1;
+                needsToReturnEarlier = false;
             }
+            if (needsToReturnEarlier)
+                return;
+            float angle = std::atan2(calculatedVector.y, calculatedVector.x);
+            player.pos.x += cos(angle) * 3;
+            player.pos.y += sin(angle) * 3;
         }
 
         void entry(GameData &gameData) {
