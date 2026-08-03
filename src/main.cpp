@@ -1,6 +1,7 @@
 #include "GameData.hpp"
 #include "Player.hpp"
 #include "Position.hpp"
+#include "TickedFunction.hpp"
 #include <raylib.h>
 #include <raymath.h>
 
@@ -9,6 +10,28 @@
 namespace game {
 
     namespace loop {
+        void tickedEngineFunctionsUpdate(GameData &gameData) {
+            for (auto it = gameData.tickedFunctions.begin(); it != gameData.tickedFunctions.end(); it++) {
+                TickedFunction &tickedEngineFunction = *it.base();
+                if (gameData.tick % tickedEngineFunction.tickGoal == 0) {
+                    tickedEngineFunction.function(gameData);
+                }
+            }
+        }
+
+        void tickUpdate(GameData &gameData) {
+            gameData.tickClock += GetFrameTime();
+            double tickTime = 1.0 / gameData.tickRate;
+            if (gameData.tickClock < tickTime) {
+                return;
+            }
+            for (size_t i = 1; i < gameData.tickClock / tickTime; i++) {
+                gameData.tick++;
+                tickedEngineFunctionsUpdate(gameData);
+            }
+            gameData.tickClock = 0;
+        }
+
 
         void draw_map(GameData &gameData, int worldWidth, int worldHeight) {
             Player player = gameData.player;

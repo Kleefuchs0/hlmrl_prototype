@@ -1,12 +1,19 @@
 #pragma once
 
 #include "Player.hpp"
+#include "TickedFunction.hpp"
 #include "raylib.h"
+#include <cstdint>
 #include <entt/entt.hpp>
+#include <vector>
 
 struct GameData {
     int worldWidth;
     int worldHeight;
+    double tickClock;
+    uint_fast64_t tick = 0;
+    uint_fast16_t tickRate = 60;
+    std::vector<TickedFunction> tickedFunctions;
     entt::registry registry;
     Camera2D cam;
     Player player;
