@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LogLevel.hpp"
 #include "Map.hpp"
 #include "Player.hpp"
 #include "TickedFunction.hpp"
@@ -9,7 +10,12 @@
 #include <entt/entt.hpp>
 #include <map>
 
+struct DebugConfiguration {
+    LogLevel logLevel = LogLevel::DEBUG;
+};
+
 struct GameData {
+    DebugConfiguration debugConfiguration;
     RenderTexture2D renderTexture;
     int worldWidth = 0;
     int worldHeight = 0;
