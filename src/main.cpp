@@ -17,7 +17,8 @@ namespace game {
 
         void game_input_update_player(GameData &gameData) {
             Player &player = gameData.player;
-            player.rotation = atan2(GetMousePosition().y - player.pos.y, GetMousePosition().x - player.pos.x) * (180 / M_PI);
+            Position mousePositionRelative = GetScreenToWorld2D(GetMousePosition(), gameData.cam) - player.pos;
+            player.rotation = std::atan2(mousePositionRelative.y, mousePositionRelative.x) * (180 / M_PI);
             EVector2 calculatedVector = {0, 0};
             bool noInput = true;
             if(IsKeyDown(KEY_W)) {
