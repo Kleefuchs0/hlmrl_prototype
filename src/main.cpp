@@ -78,7 +78,7 @@ namespace game {
             return std::atan2(mousePositionRelative.y, mousePositionRelative.x) * (180 / M_PI);
         }
 
-        void game_input_update_player(GameData &gameData) {
+        void game_input_update_player(GameData &gameData, DebugConfiguration &debugConfiguration) {
             Player &player = gameData.player;
             player.rotation = get_player_angle_to_mouse(gameData);
 
@@ -108,26 +108,28 @@ namespace game {
                 playerDeltaSpeedChangeVector = {cos(angle) * player.movementSpeed.value(), sin(angle) * player.movementSpeed.value()};
 
             player.deltaSpeed += playerDeltaSpeedChangeVector;
-            try_move_player(player, gameData.map, player.deltaSpeed, gameData.debugConfiguration);
+            try_move_player(player, gameData.map, player.deltaSpeed, debugConfiguration);
 
             gameData.cam.target = player.pos;
         }
 
-        void game_input_update(GameData &gameData) {
-            game_input_update_player(gameData);
+        void game_input_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
+            game_input_update_player(gameData, debugConfiguration);
         }
 
-        void misc_update() {
-            if(IsKeyPressed(KEY_F11)) {
+        void misc_update(DebugConfiguration &debugConfiguration) {
+            if(IsKeyPressed(KEY_F11))
                 ToggleFullscreen();
-            }
+            if (IsKeyPressed(KEY_F3))
+                debugConfiguration.drawFPS = !debugConfiguration.drawFPS;
+
         }
 
-        void entry(GameData &gameData) {
+        void entry(GameData &gameData, DebugConfiguration &debugConfiguration) {
             while (!WindowShouldClose()) {
-                game::loop::misc_update();
-                tick::tick_update(gameData);
-                draw::draw(gameData);
+                game::loop::misc_update(debugConfiguration);
+                tick::tick_update(gameData, debugConfiguration);
+                draw::draw(gameData, debugConfiguration);
             }
         }
     }
@@ -162,6 +164,7 @@ void initialize_map(GameData &gameData) {
 }
 
 int main() {
+    DebugConfiguration debugConfiguration;
     GameData gameData(generate_default_cam(640, 360), 640, 360);
     gameData.tickRate = 128;
     gameData.tickedFunctions["game_input"] = TickedFunction(1, &game::loop::game_input_update);
@@ -169,16 +172,15 @@ int main() {
     initialize_map(gameData);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
-    SetTargetFPS(180);
     SetWindowSize(1280, 720);
-    if (gameData.debugConfiguration.logLevel >= LogLevel::DEBUG)
+    if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Entering game-loop");
-    game::loop::entry(gameData);
-    if (gameData.debugConfiguration.logLevel >= LogLevel::DEBUG)
+    game::loop::entry(gameData, debugConfiguration);
+    if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Closing and unloading game");
     CloseWindow();
     UnloadRenderTexture(gameData.renderTexture);
-    if (gameData.debugConfiguration.logLevel >= LogLevel::DEBUG)
+    if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Unlaoded everything");
     return 0;
 }

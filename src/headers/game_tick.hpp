@@ -7,9 +7,9 @@ namespace game {
 
         namespace tick {
 
-            void ticked_function_update(GameData &gameData);
+            void ticked_function_update(GameData &gameData, DebugConfiguration &debugConfiguration);
 
-            void tick_update(GameData &gameData);
+            void tick_update(GameData &gameData, DebugConfiguration &debugConfiguration);
 
         }
 

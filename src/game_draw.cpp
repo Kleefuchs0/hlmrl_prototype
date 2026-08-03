@@ -1,4 +1,5 @@
 #include "game_draw.hpp"
+#include "DebugConfiguration.hpp"
 #include "constants.hpp"
 #include "fmt/core.h"
 #include "raylib.h"
@@ -32,7 +33,7 @@ void draw::draw_map(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map, GameData &g
             Color color = WHITE;
             switch (tileType.value()) {
                 case tile_type::EMPTY:
-                    continue;
+                    continue;           // Skip empty ones
                 case tile_type::WALL:
                     color = RED;
                 case tile_type::FLOOR:
@@ -50,7 +51,7 @@ void draw::draw_player(GameData &gameData) {
     DrawCircleV(player.pos, player.circularHitBoxRadius, RED);
 }
 
-void draw::draw(GameData &gameData) {
+void draw::draw(GameData &gameData, DebugConfiguration &debugConfiguration) {
     BeginDrawing();
     ClearBackground(BLACK);
     BeginTextureMode(gameData.renderTexture);
@@ -59,6 +60,8 @@ void draw::draw(GameData &gameData) {
     draw_map(gameData.player, gameData.map, gameData);
     draw_player(gameData);
     EndMode2D();
+    if (debugConfiguration.drawFPS)
+        DrawFPS(10, 10);
     EndTextureMode();
     EndDrawing();
     DrawTexturePro(gameData.renderTexture.texture, {0, 0, static_cast<float>(gameData.renderTexture.texture.width), -static_cast<float>(gameData.renderTexture.texture.height)}, {0, 0, static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight())}, {0, 0}, 0.0f, gameData.screenTint);

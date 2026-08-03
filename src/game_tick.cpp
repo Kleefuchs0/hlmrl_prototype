@@ -1,9 +1,10 @@
 #include "game_tick.hpp"
+#include "DebugConfiguration.hpp"
 
 using namespace game::loop;
 
 
-void tick::tick_update(GameData &gameData) {
+void tick::tick_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
     gameData.tickClock += GetFrameTime();
     double tickTime = 1.0 / gameData.tickRate;
     if (gameData.tickClock < tickTime) {
@@ -11,17 +12,17 @@ void tick::tick_update(GameData &gameData) {
     }
     while(gameData.tickClock >= tickTime) {
         gameData.tick++;
-        ticked_function_update(gameData);
+        ticked_function_update(gameData, debugConfiguration);
         gameData.tickClock -= tickTime;
     }
 }
 
 
-void tick::ticked_function_update(GameData &gameData) {
+void tick::ticked_function_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
     for (auto it = gameData.tickedFunctions.begin(); it != gameData.tickedFunctions.end(); it++) {
         TickedFunction &tickedEngineFunction = it->second;
         if (gameData.tick % tickedEngineFunction.tickGoal == 0) {
-            tickedEngineFunction.function(gameData);
+            tickedEngineFunction.function(gameData, debugConfiguration);
         }
     }
 }

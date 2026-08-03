@@ -13,7 +13,7 @@ namespace game {
 
             void draw_player(GameData &gameData);
 
-            void draw(GameData &gameData);
+            void draw(GameData &gameData, DebugConfiguration &debugConfiguration);
         }
     }
 }

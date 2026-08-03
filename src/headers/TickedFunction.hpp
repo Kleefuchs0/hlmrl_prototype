@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DebugConfiguration.hpp"
 #include <cstdint>
 
 struct GameData;
@@ -7,7 +8,7 @@ struct GameData;
 class TickedFunction {
     public:
      uint_fast16_t tickGoal = 1;
-     void (*function)(GameData&) = nullptr;
+     void (*function)(GameData&, DebugConfiguration&) = nullptr;
      TickedFunction() = default;
-     TickedFunction(uint_fast16_t tickGoal, void (*function) (GameData&));
+     TickedFunction(uint_fast16_t tickGoal, void (*function) (GameData&, DebugConfiguration&));
 };
