@@ -20,7 +20,23 @@ namespace game {
             }
         }
 
-        void tickUpdate(GameData &gameData) {
+        void input_update(GameData &gameData) {
+            Player &player = gameData.player;
+            if(IsKeyDown(KEY_W)) {
+                player.pos.y -= 50;
+            }
+            if(IsKeyDown(KEY_A)) {
+                player.pos.x -= 50;
+            }
+            if(IsKeyDown(KEY_S)) {
+                player.pos.y += 50;
+            }
+            if(IsKeyDown(KEY_D)) {
+                player.pos.x += 50;
+            }
+        }
+
+        void tick_update(GameData &gameData) {
             gameData.tickClock += GetFrameTime();
             double tickTime = 1.0 / gameData.tickRate;
             if (gameData.tickClock < tickTime) {
