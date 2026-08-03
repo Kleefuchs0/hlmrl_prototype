@@ -13,7 +13,7 @@ void tick::tick_update(GameData &gameData) {
         gameData.tick++;
         ticked_function_update(gameData);
     }
-    gameData.tickClock -= tickTime;
+    gameData.tickClock = 0;
 }
 
 

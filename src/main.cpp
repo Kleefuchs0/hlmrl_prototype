@@ -16,23 +16,23 @@ namespace game {
         void input_update(GameData &gameData) {
             Player &player = gameData.player;
             if(IsKeyDown(KEY_W)) {
-                player.pos.y -= 50;
+                player.pos.y -= 2;
             }
             if(IsKeyDown(KEY_A)) {
-                player.pos.x -= 50;
+                player.pos.x -= 2;
             }
             if(IsKeyDown(KEY_S)) {
-                player.pos.y += 50;
+                player.pos.y += 2;
             }
             if(IsKeyDown(KEY_D)) {
-                player.pos.x += 50;
+                player.pos.x += 2;
             }
         }
 
         void entry(GameData &gameData) {
             while (!WindowShouldClose()) {
-                draw::draw(gameData);
                 tick::tick_update(gameData);
+                draw::draw(gameData);
             }
         }
     }
@@ -57,9 +57,10 @@ void initialize_player(GameData &gameData) {
 
 int main() {
     GameData gameData(generate_default_cam(640, 360), 640, 360);
-    gameData.tickedFunctions["input"] = TickedFunction(60, &game::loop::input_update);
+    gameData.tickedFunctions["input"] = TickedFunction(1, &game::loop::input_update);
     initialize_player(gameData);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
+    SetTargetFPS(1000);
     game::loop::entry(gameData);
     CloseWindow();
     return 0;
