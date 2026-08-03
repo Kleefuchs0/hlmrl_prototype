@@ -34,8 +34,15 @@ namespace game {
             player.pos.y += sin(angle) * player.speed.value();
         }
 
+        void misc_update() {
+            if(IsKeyPressed(KEY_F11)) {
+                ToggleFullscreen();
+            }
+        }
+
         void entry(GameData &gameData) {
             while (!WindowShouldClose()) {
+                game::loop::misc_update();
                 tick::tick_update(gameData);
                 draw::draw(gameData);
             }
@@ -62,7 +69,7 @@ void initialize_player(GameData &gameData) {
 
 int main() {
     GameData gameData(generate_default_cam(640, 360), 640, 360);
-    gameData.tickedFunctions["input"] = TickedFunction(1, &game::loop::game_input_update);
+    gameData.tickedFunctions["game_input"] = TickedFunction(1, &game::loop::game_input_update);
     initialize_player(gameData);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     SetTargetFPS(1000);
