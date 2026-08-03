@@ -1,6 +1,7 @@
 #include "GameData.hpp"
 #include "Player.hpp"
 #include "Position.hpp"
+#include "game_tick.hpp"
 #include "TickedFunction.hpp"
 #include "game_draw.hpp"
 #include <raylib.h>
@@ -31,6 +32,7 @@ namespace game {
         void entry(GameData &gameData) {
             while (!WindowShouldClose()) {
                 draw::draw(gameData);
+                tick::tick_update(gameData);
             }
         }
     }
