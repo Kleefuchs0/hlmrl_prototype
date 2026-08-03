@@ -8,7 +8,8 @@ namespace game {
 
         namespace draw {
 
-            void draw_map(GameData &gameData);
+            template<size_t MAP_WIDTH, size_t MAP_HEIGHT>
+            void draw_map(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map, GameData &gameData);
 
             void draw_player(GameData &gameData);
 

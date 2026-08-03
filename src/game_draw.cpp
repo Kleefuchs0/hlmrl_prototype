@@ -1,21 +1,38 @@
 #include "game_draw.hpp"
 #include "constants.hpp"
+#include "fmt/core.h"
 #include "raylib.h"
+#include <cstddef>
 #include <cstdlib>
+#include <stddef.h>
+#include <utility>
 
 using namespace game::loop;
 
-void draw::draw_map(GameData &gameData) {
-    Map<DEFAULT_MAP_WIDTH, DEFAULT_MAP_HEIGHT> &map = gameData.map;
+template<size_t MAP_WIDTH, size_t MAP_HEIGHT>
+void draw::draw_map(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map, GameData &gameData) {
+
+    std::pair<Position, Position> worldScreenWindowRange;
+    worldScreenWindowRange.first = GetScreenToWorld2D({0, 0}, gameData.cam);
+    worldScreenWindowRange.second = GetScreenToWorld2D({static_cast<float>(gameData.renderTexture.texture.width), static_cast<float>(gameData.renderTexture.texture.height)}, gameData.cam);
+
+    std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> tileRanges;
+    tileRanges.first = {worldScreenWindowRange.first.x / TILE_SIZE, worldScreenWindowRange.first.y / TILE_SIZE};
+    tileRanges.second = {std::ceil(worldScreenWindowRange.second.x / TILE_SIZE), std::ceil(worldScreenWindowRange.second.y / TILE_SIZE)};
+
+    if (tileRanges.first.first >= MAP_WIDTH)     // Correct too big values
+        tileRanges.first.first = 0;
+    if (tileRanges.first.second >= MAP_HEIGHT)     // Correct too big values
+        tileRanges.first.second = 0;
+
     
-    for (size_t y = 0; y < map.height(); y++) {
-        for (size_t x = 0; x < map.width(); x++) {
+    for (size_t y = tileRanges.first.second; y < tileRanges.second.second; y++) {
+        for (size_t x = tileRanges.first.first; x < tileRanges.second.first; x++) {
             TileType tileType = map.get_tile_type(x, y);
             Color color = WHITE;
             switch (tileType.value()) {
                 case tile_type::EMPTY:
-                    color = {0, 0, 0, 0};
-                    break;
+                    continue;
                 case tile_type::WALL:
                     color = RED;
                 case tile_type::FLOOR:
@@ -39,7 +56,7 @@ void draw::draw(GameData &gameData) {
     BeginTextureMode(gameData.renderTexture);
     BeginMode2D(gameData.cam);
     ClearBackground(BLACK);
-    draw_map(gameData);
+    draw_map(gameData.player, gameData.map, gameData);
     draw_player(gameData);
     EndMode2D();
     EndTextureMode();
