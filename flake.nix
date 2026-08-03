@@ -21,14 +21,17 @@
         };
       in
       {
-        devShell = pkgs.mkShell {
+        devShell = pkgs.mkShell.override {
+          stdenv = pkgs.gcc16Stdenv;
+          }
+          {
           buildInputs = with pkgs; [
             pkg-config
             wayland
             wayland-scanner
             libffi
             libGL
-            gcc16
+            gcc
             clang-tools
             clang
             gnumake
