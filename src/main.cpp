@@ -63,6 +63,7 @@ namespace game {
         }
 
         void draw(GameData &gameData) {
+            input_update(gameData);
             BeginDrawing();
             ClearBackground(BLACK);
             BeginMode2D(gameData.cam);
