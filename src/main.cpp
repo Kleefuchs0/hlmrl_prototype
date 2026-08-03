@@ -5,6 +5,7 @@
 #include "game_tick.hpp"
 #include "TickedFunction.hpp"
 #include "game_draw.hpp"
+#include <cmath>
 #include <raylib.h>
 #include <raymath.h>
 
@@ -32,6 +33,7 @@ namespace game {
             float angle = std::atan2(calculatedVector.y, calculatedVector.x);
             player.pos.x += cos(angle) * player.speed.value();
             player.pos.y += sin(angle) * player.speed.value();
+            player.rotation = std::atan2(GetMousePosition().y - player.pos.y, GetMousePosition().x - player.pos.x) * (180 / M_PI);
         }
 
         void misc_update() {
