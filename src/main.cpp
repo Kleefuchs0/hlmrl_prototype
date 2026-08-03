@@ -16,27 +16,23 @@ namespace game {
     namespace loop {
 
         void input_update(GameData &gameData) {
-            bool needsToReturnEarlier = true;
             Player &player = gameData.player;
+            if(IsKeyPressed(KEY_F11)) {
+                ToggleFullscreen();
+            }
             EVector2 calculatedVector = {0, 0};
             if(IsKeyDown(KEY_W)) {
                 calculatedVector.y -= 1;
-                needsToReturnEarlier = false;
             }
             if(IsKeyDown(KEY_S)) {
                 calculatedVector.y += 1;
-                needsToReturnEarlier = false;
             }
             if(IsKeyDown(KEY_A)) {
                 calculatedVector.x -= 1;
-                needsToReturnEarlier = false;
             }
             if(IsKeyDown(KEY_D)) {
                 calculatedVector.x += 1;
-                needsToReturnEarlier = false;
             }
-            if (needsToReturnEarlier)
-                return;
             float angle = std::atan2(calculatedVector.y, calculatedVector.x);
             player.pos.x += cos(angle) * player.speed.value();
             player.pos.y += sin(angle) * player.speed.value();
