@@ -38,8 +38,9 @@ namespace game {
             if (needsToReturnEarlier)
                 return;
             float angle = std::atan2(calculatedVector.y, calculatedVector.x);
-            player.pos.x += cos(angle) * 3;
-            player.pos.y += sin(angle) * 3;
+            player.pos.x += cos(angle) * player.speed.value();
+            player.pos.y += sin(angle) * player.speed.value();
+            gameData.cam.target = player.pos;
         }
 
         void entry(GameData &gameData) {
