@@ -15,25 +15,39 @@ namespace game {
 
     namespace loop {
 
-        void game_input_update(GameData &gameData) {
+        void game_input_update_player(GameData &gameData) {
             Player &player = gameData.player;
+            player.rotation = atan2(GetMousePosition().y - player.pos.y, GetMousePosition().x - player.pos.x) * (180 / M_PI);
             EVector2 calculatedVector = {0, 0};
+            bool noInput = true;
             if(IsKeyDown(KEY_W)) {
                 calculatedVector.y -= 1;
+                noInput = false;
             }
             if(IsKeyDown(KEY_S)) {
                 calculatedVector.y += 1;
+                noInput = false;
             }
             if(IsKeyDown(KEY_A)) {
                 calculatedVector.x -= 1;
+                noInput = false;
             }
             if(IsKeyDown(KEY_D)) {
                 calculatedVector.x += 1;
+                noInput = false;
             }
+
+            if (noInput)
+                return;
+
             float angle = std::atan2(calculatedVector.y, calculatedVector.x);
             player.pos.x += cos(angle) * player.speed.value();
             player.pos.y += sin(angle) * player.speed.value();
-            player.rotation = std::atan2(GetMousePosition().y - player.pos.y, GetMousePosition().x - player.pos.x) * (180 / M_PI);
+            gameData.cam.target = player.pos;
+        }
+
+        void game_input_update(GameData &gameData) {
+            game_input_update_player(gameData);
         }
 
         void misc_update() {
@@ -67,14 +81,16 @@ void initialize_player(GameData &gameData) {
     gameData.player.pos.x = 0;
     gameData.player.pos.y = 0;
     gameData.player.rotation = 70;
+    gameData.player.speed = 5;
 }
 
 int main() {
     GameData gameData(generate_default_cam(640, 360), 640, 360);
+    gameData.tickRate = 60;
     gameData.tickedFunctions["game_input"] = TickedFunction(1, &game::loop::game_input_update);
     initialize_player(gameData);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
-    SetTargetFPS(1000);
+    SetTargetFPS(60);
     game::loop::entry(gameData);
     CloseWindow();
     return 0;
