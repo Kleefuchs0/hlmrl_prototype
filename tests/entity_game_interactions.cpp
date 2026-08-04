@@ -29,19 +29,43 @@ TEST_CASE("Testing functions for entity game interactions", "[entity_game_intera
         REQUIRE(collisionTiles[3] == TileType(tile_type::EMPTY));
     }
 
-    SECTION("Testing entity collision detection, with tiles") {
+    SECTION("Testing entity movement") {
         Map<8, 8, 64.0f> map;
         for (size_t y = 0; y < map.height(); y++) {
             for (size_t x = 0; x < map.width(); x++) {
                 map.set_tile_type(x, y, tile_type::FLOOR);
             }
         }
+        map.set_tile_type(0, 0, tile_type::WALL);
+        map.set_tile_type(0, 1, tile_type::WALL);
+        map.set_tile_type(0, 2, tile_type::WALL);
+        map.set_tile_type(1, 0, tile_type::WALL);
+        map.set_tile_type(2, 0, tile_type::WALL);
 
-        Position pos = {64.0f, 64.0f};
+        Position pos = {64.0f * 2, 64.0f * 2};
         HitBoxRadius radius = 32.0f;
         DebugConfiguration debugConfiguration;
         debugConfiguration.logLevel = LogLevel::DEBUG;
 
-        try_move_entity(pos, radius, map, {0, 0}, debugConfiguration);
+        {
+            entity_move_return_code retval = try_move_entity(pos, radius, map, {-32, -32}, debugConfiguration);
+            REQUIRE(retval == entity_move_return_code::BOTH_MOVED);
+            REQUIRE(pos.x == 96.0f);
+            REQUIRE(pos.y == 96.0f);
+        }
+
+        {
+            entity_move_return_code retval = try_move_entity(pos, radius, map, {-16, 0}, debugConfiguration);
+            REQUIRE(retval == entity_move_return_code::Y_MOVED);
+            REQUIRE(pos.x == 96.0f);
+            REQUIRE(pos.y == 96.0f);
+        }
+
+        {
+            entity_move_return_code retval = try_move_entity(pos, radius, map, {-16, -16}, debugConfiguration);
+            REQUIRE(retval == entity_move_return_code::NONE_MOVED);
+            REQUIRE(pos.x == 96.0f);
+            REQUIRE(pos.y == 96.0f);
+        }
     }
 }

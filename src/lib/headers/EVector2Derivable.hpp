@@ -12,18 +12,26 @@ class EVector2Derivable : public Vector2 {
      constexpr inline EVector2Derivable(Vector2 v) : Vector2(v) {}
      constexpr inline EVector2Derivable(float x, float y)
          : Vector2{x, y} {}
+     constexpr inline bool operator ==(const Vector2 &rhs) const {
+         return (this->x == rhs.x && this->y == rhs.y);
+     }
+     friend constexpr bool operator==(const Derived& lhs, const Vector2& rhs) {
+         return lhs.x == rhs.x && lhs.y == rhs.y;
+     }
+
+     friend constexpr bool operator==(const Vector2& lhs, const Derived& rhs) {
+         return lhs.x == rhs.x && lhs.y == rhs.y;
+     }
      constexpr inline Derived operator +(const Vector2 &rhs) const {
          return {this->x + rhs.x, this->y + rhs.y};
      }
      constexpr inline void operator +=(const Vector2 &rhs) {
          *this = *this + rhs;
      }
-     constexpr inline bool operator ==(Vector2 &rhs) const {
-         return (this->x == rhs.x && this->y && rhs.y);
-     }
-     constexpr inline void operator =(const Vector2 &rhs) {
+     constexpr inline Derived &operator =(const Vector2 &rhs) {
          this->x = rhs.x;
          this->y = rhs.y;
+         return this;
      }
      constexpr inline Derived operator -(const Vector2 &rhs) const {
          return {this->x - rhs.x, this->y - rhs.y};
