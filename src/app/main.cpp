@@ -10,6 +10,7 @@
 #include "PlayerMarker.hpp"
 #include "Position.hpp"
 #include "BodySize.hpp"
+#include "constants.hpp"
 #include "entity_map_interaction.hpp"
 #include "entt/entity/fwd.hpp"
 #include "fmt/core.h"
@@ -77,6 +78,7 @@ namespace game {
         }
 
         void player_update(const entt::entity &player, GameData &gameData, DebugConfiguration &debugConfiguration) {
+            //TODO: Implement bounds checking for player.
             const auto &[speedVector, position, hitBoxRadius] = gameData.registry.get<SpeedVector, Position, HitBoxRadius>(player);
             try_move_entity_with_deltaSpeed_change_on_collision(position, speedVector, hitBoxRadius, gameData.map, speedVector, debugConfiguration);
 
@@ -159,18 +161,18 @@ void initialize_player(GameData &gameData) {
 
 void initialize_map(GameData &gameData) {
 
-    for (size_t x = 0; x <= 100; x++) {
+    for (size_t x = 0; x < DEFAULT_MAP_WIDTH; x++) {
         gameData.map.set_tile_type(x, 0, TileType(tile_type::WALL));
-        gameData.map.set_tile_type(x, 100, TileType(tile_type::WALL));
+        gameData.map.set_tile_type(x, DEFAULT_MAP_HEIGHT - 1, TileType(tile_type::WALL));
     }
 
-    for (size_t y = 1; y <= 100; y++) {
+    for (size_t y = 1; y < DEFAULT_MAP_HEIGHT; y++) {
         gameData.map.set_tile_type(0, y, TileType(tile_type::WALL));
-        gameData.map.set_tile_type(100, y, TileType(tile_type::WALL));
+        gameData.map.set_tile_type(DEFAULT_MAP_HEIGHT - 1, y, TileType(tile_type::WALL));
     }
 
-    for (size_t x = 1; x < 100; x++) 
-        for (size_t y = 1; y < 100; y++)
+    for (size_t x = 1; x < DEFAULT_MAP_WIDTH - 1; x++) 
+        for (size_t y = 1; y < DEFAULT_MAP_HEIGHT - 1; y++)
             gameData.map.set_tile_type(x, y, TileType(tile_type::FLOOR));
 }
 
