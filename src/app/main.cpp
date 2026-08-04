@@ -21,33 +21,12 @@
 #include <cstddef>
 #include <raylib.h>
 #include <raymath.h>
-#include "player_map_interaction.hpp"
+#include "entity_try_move.hpp"
 
 namespace game {
 
     namespace loop {
 
-
-        template <size_t MAP_WIDTH, size_t MAP_HEIGHT>
-        void try_move_entity(Position &position, DeltaSpeed &deltaSpeed, HitBoxRadius &hitBoxRadius, Map<MAP_WIDTH, MAP_HEIGHT> &map, DeltaSpeed change, DebugConfiguration &debugConfiguration) {
-            Position oldPlayerPos = position;
-            position.x += change.x;
-            {
-                std::array<TileType, 4> collisionTiles = get_map_collision_tiles(position, hitBoxRadius, map, debugConfiguration);
-                if(std::count(collisionTiles.begin(), collisionTiles.end(), TileType(tile_type::WALL))) {
-                    position.x = oldPlayerPos.x;
-                    deltaSpeed.x *= -0.05;
-                }
-            }
-            position.y += change.y;
-            {
-                std::array<TileType, 4> collisionTiles = get_map_collision_tiles(position, hitBoxRadius, map, debugConfiguration);
-                if(std::count(collisionTiles.begin(), collisionTiles.end(), TileType(tile_type::WALL))) {
-                    position.y = oldPlayerPos.y;
-                    deltaSpeed.y *= -0.05;
-                }
-            }
-        }
 
         float get_player_angle_to_mouse(const GameData &gameData, const Position &playerPosition) {
             Position mousePositionRelative = GetScreenToWorld2D(GetMousePosition() / (static_cast<float>(GetScreenWidth()) / gameData.worldWidth), gameData.cam) - playerPosition;
@@ -93,6 +72,7 @@ namespace game {
             Acceleration &acceleration = gameData.registry.get<Acceleration>(player);
             game_input_update_deltaspeed(deltaSpeed, acceleration);
         }
+
         void players_input_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
             auto playerView = gameData.registry.view<PlayerMarker, DeltaSpeed, BodyRotation, Acceleration>();
             for (const entt::entity &player : playerView) {
