@@ -63,10 +63,7 @@ void draw::draw_entities(GameData &gameData, DebugConfiguration &debugConfigurat
     entt::registry &registry = gameData.registry;
     auto entity_view = gameData.registry.view<Position, BodySize, HitBoxRadius, BodyRotation>();
     for (const entt::entity &entity : entity_view) {
-        const Position &position = registry.get<Position>(entity);
-        const BodySize &bodySize = registry.get<BodySize>(entity);
-        const BodyRotation &bodyRotation = registry.get<BodyRotation>(entity);
-        const HitBoxRadius &hitBoxRadius = registry.get<HitBoxRadius>(entity);
+        const auto &[position, bodySize, bodyRotation, hitBoxRadius] = registry.get<Position, BodySize, BodyRotation, HitBoxRadius>(entity);
         draw_entity(gameData, debugConfiguration, position, bodySize, bodyRotation, hitBoxRadius);
     }
 }

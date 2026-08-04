@@ -65,13 +65,10 @@ namespace game {
         }
 
         void player_input_update(const entt::entity &player, GameData &gameData, DebugConfiguration &debugConfiguration) {
-            BodyRotation &bodyRotation = gameData.registry.get<BodyRotation>(player);
-            Position &position = gameData.registry.get<Position>(player);
+            const auto &[bodyRotation, position, speedVector, acceleration] = gameData.registry.get<BodyRotation, Position, SpeedVector, Acceleration>(player);
             bodyRotation = get_player_angle_to_mouse(gameData, position);
 
-            SpeedVector &deltaSpeed = gameData.registry.get<SpeedVector>(player);
-            Acceleration &acceleration = gameData.registry.get<Acceleration>(player);
-            game_input_update_deltaspeed(deltaSpeed, acceleration);
+            game_input_update_deltaspeed(speedVector, acceleration);
         }
 
         void players_input_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
@@ -82,10 +79,8 @@ namespace game {
         }
 
         void player_update(const entt::entity &player, GameData &gameData, DebugConfiguration &debugConfiguration) {
-            SpeedVector &deltaSpeed = gameData.registry.get<SpeedVector>(player);
-            Position &position = gameData.registry.get<Position>(player);
-            HitBoxRadius &hitBoxRadius = gameData.registry.get<HitBoxRadius>(player);
-            try_move_entity_with_deltaSpeed_change_on_collision(position, deltaSpeed, hitBoxRadius, gameData.map, deltaSpeed, debugConfiguration);
+            const auto &[speedVector, position, hitBoxRadius] = gameData.registry.get<SpeedVector, Position, HitBoxRadius>(player);
+            try_move_entity_with_deltaSpeed_change_on_collision(position, speedVector, hitBoxRadius, gameData.map, speedVector, debugConfiguration);
 
             gameData.cam.target = position;
         }
