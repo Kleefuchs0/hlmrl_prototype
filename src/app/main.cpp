@@ -1,9 +1,13 @@
+#include "BodyRotation.hpp"
+#include "DebugConfiguration.hpp"
 #include "DeltaSpeed.hpp"
 #include "EVector2.hpp"
 #include "GameData.hpp"
+#include "HitBoxRadius.hpp"
 #include "LogLevel.hpp"
 #include "Player.hpp"
 #include "Position.hpp"
+#include "BodySize.hpp"
 #include "constants.hpp"
 #include "fmt/core.h"
 #include "game_tick.hpp"
@@ -83,7 +87,7 @@ namespace game {
             gameData.cam.target = player.pos;
         }
 
-        void game_input_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
+        void player_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
             game_input_update_player(gameData, debugConfiguration);
         }
 
@@ -126,7 +130,16 @@ Camera2D generate_default_cam(int worldWidth, int worldHeight) {
     return cam;
 }
 
-void initialize_player(Player &player) {
+void initialize_player(GameData &gameData) {
+    auto playerEntity = gameData.registry.create();
+    gameData.registry.emplace<Position>(playerEntity, TILE_SIZE * 2, TILE_SIZE * 2);
+    gameData.registry.emplace<BodySize>(playerEntity, TILE_SIZE, TILE_SIZE);
+    gameData.registry.emplace<BodyRotation>(playerEntity, 70);
+    gameData.registry.emplace<Acceleration>(playerEntity, 0.1);
+    gameData.registry.emplace<HitBoxRadius>(playerEntity, TILE_SIZE / 2.5);
+    gameData.registry.emplace<DeltaSpeed>(playerEntity, 0, 0);
+    gameData.registry.emplace<TickedFunction>(playerEntity, TickedFunction(1, &game::loop::player_update));
+    Player &player = gameData.player;
     player.size.x = TILE_SIZE;
     player.size.y = TILE_SIZE;
     player.pos.x = TILE_SIZE * 2;
@@ -158,8 +171,7 @@ int main() {
     DebugConfiguration debugConfiguration;
     GameData gameData(generate_default_cam(640, 360), 640, 360);
     gameData.tickRate = 128;
-    gameData.tickedFunctions["game_input"] = TickedFunction(1, &game::loop::game_input_update);
-    initialize_player(gameData.player);
+    initialize_player(gameData);
     initialize_map(gameData);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);

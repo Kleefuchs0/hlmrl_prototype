@@ -2,14 +2,14 @@
 
 #include "DeltaSpeed.hpp"
 #include "Position.hpp"
-#include "Size.hpp"
-#include "MovementSpeed.hpp"
+#include "BodySize.hpp"
+#include "Acceleration.hpp"
 
 struct Player {
-    MovementSpeed movementSpeed;
+    Acceleration movementSpeed;
     Position pos;
     DeltaSpeed deltaSpeed;
-    Size size;
+    BodySize size;
     float hitBoxRadius;
     float rotation;
     float circularHitBoxRadius;
