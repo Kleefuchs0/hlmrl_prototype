@@ -18,6 +18,7 @@ TEST_CASE("Testing functions for entity game interactions", "[entity_game_intera
                 map.set_tile_type(x, y, tileType);
             }
         }
+
         Position pos = {64.0f, 64.0f};
         HitBoxRadius radius = 32.0f;
         DebugConfiguration debugConfiguration;

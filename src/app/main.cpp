@@ -10,7 +10,6 @@
 #include "PlayerMarker.hpp"
 #include "Position.hpp"
 #include "BodySize.hpp"
-#include "constants.hpp"
 #include "entity_map_interaction.hpp"
 #include "entt/entity/fwd.hpp"
 #include "fmt/core.h"
@@ -35,7 +34,7 @@ namespace game {
             return std::atan2(mousePositionRelative.y, mousePositionRelative.x) * (180 / M_PI);
         }
 
-        void game_input_update_deltaspeed(SpeedVector &deltaSpeed, const Acceleration &acceleration) {
+        void player_input_update_speedvector(SpeedVector &deltaSpeed, const Acceleration &acceleration) {
 
             bool invalidInput = true;
             EVector2 calculatedVector = {0, 0};
@@ -68,14 +67,13 @@ namespace game {
             const auto &[bodyRotation, position, speedVector, acceleration] = gameData.registry.get<BodyRotation, Position, SpeedVector, Acceleration>(player);
             bodyRotation = get_player_angle_to_mouse(gameData, position);
 
-            game_input_update_deltaspeed(speedVector, acceleration);
+            player_input_update_speedvector(speedVector, acceleration);
         }
 
         void players_input_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
             auto playerView = gameData.registry.view<PlayerMarker, SpeedVector, BodyRotation, Acceleration>();
-            for (const entt::entity &player : playerView) {
+            for (const entt::entity &player : playerView)
                 player_input_update(player, gameData, debugConfiguration);
-            }
         }
 
         void player_update(const entt::entity &player, GameData &gameData, DebugConfiguration &debugConfiguration) {
