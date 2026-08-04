@@ -16,6 +16,15 @@ std::array<TileType, 4> get_map_collision_tiles(const Position &position, const 
     playerMapCoordinatesRange.second = {std::ceil((position.x + hitBoxRadius.value()) / TILE_SIZE), std::ceil((position.y + hitBoxRadius.value()) / TILE_SIZE)};
     std::array<TileType, 4> collisionTileTypes;
 
+    // if (playerMapCoordinatesRange.first.first >= MAP_WIDTH)     // Correct too big values
+    //     playerMapCoordinatesRange.first.first = 0;
+    // if (playerMapCoordinatesRange.first.second >= MAP_HEIGHT)     // Correct too big values
+    //     playerMapCoordinatesRange.first.second = 0;
+    // if (playerMapCoordinatesRange.second.first >= MAP_WIDTH)     // Correct too big values
+    //     playerMapCoordinatesRange.second.first = 1;
+    // if (playerMapCoordinatesRange.second.second >= MAP_HEIGHT)     // Correct too big values
+    //     playerMapCoordinatesRange.second.second = 1;
+
     size_t i = 0;
     for (size_t y : std::views::iota(playerMapCoordinatesRange.first.second, playerMapCoordinatesRange.second.second)) {
         for (size_t x : std::views::iota(playerMapCoordinatesRange.first.first, playerMapCoordinatesRange.second.first)) {

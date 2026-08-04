@@ -28,6 +28,10 @@ void draw::draw_map(Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, GameData &gameDa
         tileRanges.first.first = 0;
     if (tileRanges.first.second >= MAP_HEIGHT)     // Correct too big values
         tileRanges.first.second = 0;
+    // if (tileRanges.second.first >= MAP_WIDTH)     // Correct too big values
+    //     tileRanges.second.first = 1;
+    // if (tileRanges.second.second >= MAP_HEIGHT)     // Correct too big values
+    //     tileRanges.second.second = 1;
 
     
     for (size_t y : std::views::iota(tileRanges.first.second, tileRanges.second.second)) {

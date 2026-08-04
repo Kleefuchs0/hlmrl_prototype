@@ -1,6 +1,7 @@
 #include "Acceleration.hpp"
 #include "BodyRotation.hpp"
 #include "DebugConfiguration.hpp"
+#include "SpecificFrictionSlowdown.hpp"
 #include "SpeedVector.hpp"
 #include "EVector2.hpp"
 #include "GameData.hpp"
@@ -10,6 +11,7 @@
 #include "Position.hpp"
 #include "BodySize.hpp"
 #include "constants.hpp"
+#include "entity_map_interaction.hpp"
 #include "entt/entity/fwd.hpp"
 #include "fmt/core.h"
 #include "game_tick.hpp"
@@ -52,7 +54,6 @@ namespace game {
                 invalidInput = false;
             }
 
-
             float angle = std::atan2(calculatedVector.y, calculatedVector.x);
             SpeedVector playerDeltaSpeedChangeVector;
             if (invalidInput)
@@ -91,8 +92,24 @@ namespace game {
 
         void players_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
             auto playerView = gameData.registry.view<PlayerMarker, Position, SpeedVector, Acceleration, HitBoxRadius, BodyRotation>();
-            for (const entt::entity &player : playerView) {
+            for (const entt::entity &player : playerView)
                 player_update(player, gameData, debugConfiguration);
+        }
+
+        void entity_update_floor_friction(GameData &gameData, DebugConfiguration &debugConfiguration, Position &position, SpeedVector &speedVector, HitBoxRadius &hitBoxRadius, SpecificFloorFrictionSlowdown &specificFloorFrictionSlowdown) {
+            std::array<TileType, 4> tiles = get_map_collision_tiles(position, hitBoxRadius, gameData.map, debugConfiguration);
+            for (TileType tile : tiles) {
+                if (tile.value() >= TILE_TYPE_SECTION_START_FLOORS && tile.value() < TILE_TYPE_SECTION_START_WALLS) {
+                    speedVector /= 1 + specificFloorFrictionSlowdown.value();
+                }
+            }
+        }
+
+        void entities_update_friction(GameData &gameData, DebugConfiguration &debugConfiguration) {
+            auto entityView = gameData.registry.view<Position, SpeedVector, HitBoxRadius, SpecificFloorFrictionSlowdown>();
+            for (const entt::entity &entity : entityView) {
+                const auto &[position, speedVector, hitBoxRadius, specificFloorFritionSlowdown] = gameData.registry.get<Position, SpeedVector, HitBoxRadius, SpecificFloorFrictionSlowdown>(entity);
+                entity_update_floor_friction(gameData, debugConfiguration, position, speedVector, hitBoxRadius, specificFloorFritionSlowdown);
             }
         }
 
@@ -141,9 +158,10 @@ void initialize_player(GameData &gameData) {
     gameData.registry.emplace<Position>(playerEntity, gameData.map.tile_size() * 2, gameData.map.tile_size() * 2);
     gameData.registry.emplace<BodySize>(playerEntity, gameData.map.tile_size(), gameData.map.tile_size());
     gameData.registry.emplace<BodyRotation>(playerEntity, 70);
-    gameData.registry.emplace<Acceleration>(playerEntity, 0.1);
+    gameData.registry.emplace<Acceleration>(playerEntity, 0.2);
     gameData.registry.emplace<HitBoxRadius>(playerEntity, gameData.map.tile_size() / 2.5);
     gameData.registry.emplace<SpeedVector>(playerEntity, 0, 0);
+    gameData.registry.emplace<SpecificFloorFrictionSlowdown>(playerEntity, .02);
 }
 
 void initialize_map(GameData &gameData) {
@@ -171,6 +189,7 @@ int main() {
     initialize_map(gameData);
     gameData.tickedFunctions["players_input_update"] = TickedFunction(1, &game::loop::players_input_update);
     gameData.tickedFunctions["players_update"] = TickedFunction(1, &game::loop::players_update);
+    gameData.tickedFunctions["entities_friction_update"] = TickedFunction(1, &game::loop::entities_update_friction);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
     SetWindowSize(1280, 720);
