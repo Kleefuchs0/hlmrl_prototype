@@ -12,6 +12,7 @@
 #include "tile_type.hpp"
 #include <cmath>
 #include <cstddef>
+#include <ranges>
 #include <raylib.h>
 #include <raymath.h>
 
@@ -28,8 +29,8 @@ namespace game {
             playerMapCoordinatesRange.second = {std::ceil((player.pos.x + player.circularHitBoxRadius) / TILE_SIZE), std::ceil((player.pos.y + player.circularHitBoxRadius) / TILE_SIZE)};
             std::vector<TileType> collisionTileTypes;
 
-            for (size_t y = playerMapCoordinatesRange.first.second; y < playerMapCoordinatesRange.second.second; y++) {
-                for (size_t x = playerMapCoordinatesRange.first.first; x < playerMapCoordinatesRange.second.first; x++) {
+            for (size_t y : std::views::iota(playerMapCoordinatesRange.first.second, playerMapCoordinatesRange.second.second)) {
+                for (size_t x : std::views::iota(playerMapCoordinatesRange.first.first, playerMapCoordinatesRange.second.first)) {
 
                     if (x >= MAP_WIDTH || y >= MAP_HEIGHT) {
                         continue;
@@ -67,8 +68,7 @@ namespace game {
             {
                 std::vector<TileType> collisionTiles = get_player_map_collision_tiles(player, map, debugConfiguration);
                 if(std::count(collisionTiles.begin(), collisionTiles.end(), TileType(tile_type::WALL))) {
-                    player.pos.y = oldPlayerPos.y;
-                    player.deltaSpeed.y *= -0.05;
+                    player.pos.y = oldPlayerPos.y; player.deltaSpeed.y *= -0.05;
                 }
             }
         }
@@ -196,8 +196,8 @@ int main() {
     game::loop::entry(gameData, debugConfiguration);
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Closing and unloading game");
-    CloseWindow();
     UnloadRenderTexture(gameData.renderTexture);
+    CloseWindow();
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Unlaoded everything");
     return 0;

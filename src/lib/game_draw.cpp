@@ -14,7 +14,7 @@ void draw::draw_map(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map, GameData &g
 
     std::pair<Position, Position> worldScreenWindowRange;
     worldScreenWindowRange.first = GetScreenToWorld2D({0, 0}, gameData.cam);
-    worldScreenWindowRange.second = GetScreenToWorld2D({static_cast<float>(gameData.renderTexture.texture.width), static_cast<float>(gameData.renderTexture.texture.height)}, gameData.cam);
+    worldScreenWindowRange.second = GetScreenToWorld2D({static_cast<float>(gameData.worldWidth), static_cast<float>(gameData.worldHeight)}, gameData.cam);
 
     std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> tileRanges;
     tileRanges.first = {worldScreenWindowRange.first.x / TILE_SIZE, worldScreenWindowRange.first.y / TILE_SIZE};
@@ -26,8 +26,8 @@ void draw::draw_map(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map, GameData &g
         tileRanges.first.second = 0;
 
     
-    for (size_t y = tileRanges.first.second; y < tileRanges.second.second; y++) {
-        for (size_t x = tileRanges.first.first; x < tileRanges.second.first; x++) {
+    for (size_t y : std::views::iota(tileRanges.first.second, tileRanges.second.second)) {
+        for (size_t x : std::views::iota(tileRanges.first.first, tileRanges.second.first)) {
             TileType tileType = map.get_tile_type(x, y);
             Color color = WHITE;
             switch (tileType.value()) {

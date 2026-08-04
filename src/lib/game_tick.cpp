@@ -7,9 +7,9 @@ using namespace game::loop;
 void tick::tick_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
     gameData.tickClock += GetFrameTime();
     double tickTime = 1.0 / gameData.tickRate;
-    if (gameData.tickClock < tickTime) {
+    if (gameData.tickClock < tickTime)
         return;
-    }
+
     while(gameData.tickClock >= tickTime) {
         gameData.tick++;
         ticked_function_update(gameData, debugConfiguration);
@@ -19,11 +19,8 @@ void tick::tick_update(GameData &gameData, DebugConfiguration &debugConfiguratio
 
 
 void tick::ticked_function_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
-    for (auto it = gameData.tickedFunctions.begin(); it != gameData.tickedFunctions.end(); it++) {
-        TickedFunction &tickedEngineFunction = it->second;
-        if (gameData.tick % tickedEngineFunction.tickGoal == 0) {
+    for (const auto &[name, tickedEngineFunction] : gameData.tickedFunctions)
+        if (gameData.tick % tickedEngineFunction.tickGoal == 0)
             tickedEngineFunction.function(gameData, debugConfiguration);
-        }
-    }
 }
 

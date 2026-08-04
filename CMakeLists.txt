@@ -41,7 +41,7 @@ FetchContent_Declare(raygui
 )
 FetchContent_GetProperties(raygui)
 if(NOT raygui_POPULATED)
-    FetchContent_Populate(raygui)
+    FetchContent_MakeAvailable(raygui)
 endif()
 
 
@@ -66,9 +66,6 @@ file(GLOB LIB_SOURCE_FILES src/lib/*.cpp)
 
 add_library(hlmrl_lib ${LIB_SOURCE_FILES})
 set_property(TARGET hlmrl_lib PROPERTY CXX_STANDARD 23)
-target_compile_definitions(hlmrl_lib PUBLIC PROJECT_NAME="hlmrl_lib")
-target_compile_definitions(hlmrl_lib PUBLIC PROJECT_VERSION=${CMAKE_PROJECT_VERSION})
-
 
 target_compile_options(hlmrl_lib PRIVATE
     $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-g;-Wall>
@@ -120,9 +117,6 @@ file(GLOB APP_SOURCE_FILES src/app/*.cpp)
 
 add_executable(hlmrl ${APP_SOURCE_FILES})
 set_property(TARGET hlmrl PROPERTY CXX_STANDARD 23)
-target_compile_definitions(hlmrl PUBLIC PROJECT_NAME="hlmrl")
-target_compile_definitions(hlmrl PUBLIC PROJECT_VERSION=${CMAKE_PROJECT_VERSION})
-
 
 target_compile_options(hlmrl PRIVATE
     $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-g;-Wall>
