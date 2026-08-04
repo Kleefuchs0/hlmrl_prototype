@@ -22,12 +22,5 @@ void tick::ticked_function_update(GameData &gameData, DebugConfiguration &debugC
     for (const auto &[name, tickedEngineFunction] : gameData.tickedFunctions)
         if (gameData.tick % tickedEngineFunction.tickGoal == 0)
             tickedEngineFunction.function(gameData, debugConfiguration);
-
-    auto entityFunctionView = gameData.registry.view<TickedFunction>();
-    for (auto &entity : entityFunctionView) {
-        TickedFunction &tickedFunction = gameData.registry.get<TickedFunction>(entity);
-        if (gameData.tick % tickedFunction.tickGoal == 0)
-            tickedFunction.function(gameData, debugConfiguration);
-    }
 }
 

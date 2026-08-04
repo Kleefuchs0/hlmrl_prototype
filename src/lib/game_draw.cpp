@@ -1,5 +1,9 @@
 #include "game_draw.hpp"
+#include "BodyRotation.hpp"
 #include "DebugConfiguration.hpp"
+#include "HitBoxRadius.hpp"
+#include "Position.hpp"
+#include "BodySize.hpp"
 #include "constants.hpp"
 #include "raylib.h"
 #include <cstddef>
@@ -10,7 +14,7 @@
 using namespace game::loop;
 
 template<size_t MAP_WIDTH, size_t MAP_HEIGHT>
-void draw::draw_map(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map, GameData &gameData) {
+void draw::draw_map(Map<MAP_WIDTH, MAP_HEIGHT> &map, GameData &gameData) {
 
     std::pair<Position, Position> worldScreenWindowRange;
     worldScreenWindowRange.first = GetScreenToWorld2D({0, 0}, gameData.cam);
@@ -45,11 +49,22 @@ void draw::draw_map(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map, GameData &g
     }
 }
 
-void draw::draw_player(GameData &gameData, DebugConfiguration &debugConfiguration) {
-    Player &player = gameData.player;
-    DrawRectanglePro({player.pos.x, player.pos.y, player.size.x, player.size.y}, {player.size.x / 2, player.size.y / 2}, player.rotation, WHITE);
+void draw::draw_entity(const GameData &gameDate, const DebugConfiguration &debugConfiguration, const Position &position, const BodySize &bodySize, const BodyRotation &bodyRotation, const HitBoxRadius &hitBoxRadius) {
+    DrawRectanglePro({position.x, position.y, bodySize.x, bodySize.y}, {bodySize.x / 2, bodySize.y / 2}, bodyRotation.value(), WHITE);
     if (debugConfiguration.drawHitBoxes)
-        DrawCircleV(player.pos, player.circularHitBoxRadius, debugConfiguration.hitBoxColor);
+        DrawCircleV(position, hitBoxRadius.value(), debugConfiguration.hitBoxColor);
+}
+
+void draw::draw_entities(GameData &gameData, DebugConfiguration &debugConfiguration) {
+    entt::registry &registry = gameData.registry;
+    auto entity_view = gameData.registry.view<Position, BodySize, HitBoxRadius, BodyRotation>();
+    for (const entt::entity &entity : entity_view) {
+        const Position &position = registry.get<Position>(entity);
+        const BodySize &bodySize = registry.get<BodySize>(entity);
+        const BodyRotation &bodyRotation = registry.get<BodyRotation>(entity);
+        const HitBoxRadius &hitBoxRadius = registry.get<HitBoxRadius>(entity);
+        draw_entity(gameData, debugConfiguration, position, bodySize, bodyRotation, hitBoxRadius);
+    }
 }
 
 void draw::draw(GameData &gameData, DebugConfiguration &debugConfiguration) {
@@ -58,8 +73,8 @@ void draw::draw(GameData &gameData, DebugConfiguration &debugConfiguration) {
     BeginTextureMode(gameData.renderTexture);
     BeginMode2D(gameData.cam);
     ClearBackground(gameData.backgroundColor);
-    draw_map(gameData.player, gameData.map, gameData);
-    draw_player(gameData, debugConfiguration);
+    draw_map(gameData.map, gameData);
+    draw_entities(gameData, debugConfiguration);
     EndMode2D();
     if (debugConfiguration.drawFPS)
         DrawFPS(10, 10);

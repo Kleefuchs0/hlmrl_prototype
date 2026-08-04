@@ -2,6 +2,6 @@
 
 #include "Rotation.hpp"
 
-class BodyRotation : Rotation<BodyRotation> {
+class BodyRotation : public Rotation<BodyRotation> {
     using Rotation<BodyRotation>::Rotation;
 };

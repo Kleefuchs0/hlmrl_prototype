@@ -1,3 +1,4 @@
+#include "Acceleration.hpp"
 #include "BodyRotation.hpp"
 #include "DebugConfiguration.hpp"
 #include "DeltaSpeed.hpp"
@@ -5,10 +6,11 @@
 #include "GameData.hpp"
 #include "HitBoxRadius.hpp"
 #include "LogLevel.hpp"
-#include "Player.hpp"
+#include "PlayerMarker.hpp"
 #include "Position.hpp"
 #include "BodySize.hpp"
 #include "constants.hpp"
+#include "entt/entity/fwd.hpp"
 #include "fmt/core.h"
 #include "game_tick.hpp"
 #include "TickedFunction.hpp"
@@ -27,34 +29,32 @@ namespace game {
 
 
         template <size_t MAP_WIDTH, size_t MAP_HEIGHT>
-        void try_move_player(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map, DeltaSpeed change, DebugConfiguration &debugConfiguration) {
-            Position oldPlayerPos = player.pos;
-            player.pos.x += change.x;
+        void try_move_entity(Position &position, DeltaSpeed &deltaSpeed, HitBoxRadius &hitBoxRadius, Map<MAP_WIDTH, MAP_HEIGHT> &map, DeltaSpeed change, DebugConfiguration &debugConfiguration) {
+            Position oldPlayerPos = position;
+            position.x += change.x;
             {
-                std::array<TileType, 4> collisionTiles = get_player_map_collision_tiles(player, map, debugConfiguration);
+                std::array<TileType, 4> collisionTiles = get_map_collision_tiles(position, hitBoxRadius, map, debugConfiguration);
                 if(std::count(collisionTiles.begin(), collisionTiles.end(), TileType(tile_type::WALL))) {
-                    player.pos.x = oldPlayerPos.x;
-                    player.deltaSpeed.x *= -0.05;
+                    position.x = oldPlayerPos.x;
+                    deltaSpeed.x *= -0.05;
                 }
             }
-            player.pos.y += change.y;
+            position.y += change.y;
             {
-                std::array<TileType, 4> collisionTiles = get_player_map_collision_tiles(player, map, debugConfiguration);
+                std::array<TileType, 4> collisionTiles = get_map_collision_tiles(position, hitBoxRadius, map, debugConfiguration);
                 if(std::count(collisionTiles.begin(), collisionTiles.end(), TileType(tile_type::WALL))) {
-                    player.pos.y = oldPlayerPos.y;
-                    player.deltaSpeed.y *= -0.05;
+                    position.y = oldPlayerPos.y;
+                    deltaSpeed.y *= -0.05;
                 }
             }
         }
 
-        float get_player_angle_to_mouse(GameData &gameData) {
-            Position mousePositionRelative = GetScreenToWorld2D(GetMousePosition() / (static_cast<float>(GetScreenWidth()) / gameData.worldWidth), gameData.cam) - gameData.player.pos;
+        float get_player_angle_to_mouse(const GameData &gameData, const Position &playerPosition) {
+            Position mousePositionRelative = GetScreenToWorld2D(GetMousePosition() / (static_cast<float>(GetScreenWidth()) / gameData.worldWidth), gameData.cam) - playerPosition;
             return std::atan2(mousePositionRelative.y, mousePositionRelative.x) * (180 / M_PI);
         }
 
-        void game_input_update_player(GameData &gameData, DebugConfiguration &debugConfiguration) {
-            Player &player = gameData.player;
-            player.rotation = get_player_angle_to_mouse(gameData);
+        void game_input_update_deltaspeed(DeltaSpeed &deltaSpeed, const Acceleration &acceleration) {
 
             bool invalidInput = true;
             EVector2 calculatedVector = {0, 0};
@@ -79,16 +79,41 @@ namespace game {
             if (invalidInput)
                 playerDeltaSpeedChangeVector = {0, 0};
             else
-                playerDeltaSpeedChangeVector = {cos(angle) * player.movementSpeed.value(), sin(angle) * player.movementSpeed.value()};
+                playerDeltaSpeedChangeVector = {cos(angle) * acceleration.value(), sin(angle) * acceleration.value()};
 
-            player.deltaSpeed += playerDeltaSpeedChangeVector;
-            try_move_player(player, gameData.map, player.deltaSpeed, debugConfiguration);
-
-            gameData.cam.target = player.pos;
+            deltaSpeed += playerDeltaSpeedChangeVector;
         }
 
-        void player_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
-            game_input_update_player(gameData, debugConfiguration);
+        void player_input_update(const entt::entity &player, GameData &gameData, DebugConfiguration &debugConfiguration) {
+            BodyRotation &bodyRotation = gameData.registry.get<BodyRotation>(player);
+            Position &position = gameData.registry.get<Position>(player);
+            bodyRotation = get_player_angle_to_mouse(gameData, position);
+
+            DeltaSpeed &deltaSpeed = gameData.registry.get<DeltaSpeed>(player);
+            Acceleration &acceleration = gameData.registry.get<Acceleration>(player);
+            game_input_update_deltaspeed(deltaSpeed, acceleration);
+        }
+        void players_input_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
+            auto playerView = gameData.registry.view<PlayerMarker, DeltaSpeed, BodyRotation, Acceleration>();
+            for (const entt::entity &player : playerView) {
+                player_input_update(player, gameData, debugConfiguration);
+            }
+        }
+
+        void player_update(const entt::entity &player, GameData &gameData, DebugConfiguration &debugConfiguration) {
+            DeltaSpeed &deltaSpeed = gameData.registry.get<DeltaSpeed>(player);
+            Position &position = gameData.registry.get<Position>(player);
+            HitBoxRadius &hitBoxRadius = gameData.registry.get<HitBoxRadius>(player);
+            try_move_entity(position, deltaSpeed, hitBoxRadius, gameData.map, deltaSpeed, debugConfiguration);
+
+            gameData.cam.target = position;
+        }
+
+        void players_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
+            auto playerView = gameData.registry.view<PlayerMarker, Position, DeltaSpeed, Acceleration, HitBoxRadius, BodyRotation>();
+            for (const entt::entity &player : playerView) {
+                player_update(player, gameData, debugConfiguration);
+            }
         }
 
         void misc_update(DebugConfiguration &debugConfiguration) {
@@ -132,22 +157,13 @@ Camera2D generate_default_cam(int worldWidth, int worldHeight) {
 
 void initialize_player(GameData &gameData) {
     auto playerEntity = gameData.registry.create();
+    gameData.registry.emplace<PlayerMarker>(playerEntity);
     gameData.registry.emplace<Position>(playerEntity, TILE_SIZE * 2, TILE_SIZE * 2);
     gameData.registry.emplace<BodySize>(playerEntity, TILE_SIZE, TILE_SIZE);
     gameData.registry.emplace<BodyRotation>(playerEntity, 70);
     gameData.registry.emplace<Acceleration>(playerEntity, 0.1);
     gameData.registry.emplace<HitBoxRadius>(playerEntity, TILE_SIZE / 2.5);
     gameData.registry.emplace<DeltaSpeed>(playerEntity, 0, 0);
-    gameData.registry.emplace<TickedFunction>(playerEntity, TickedFunction(1, &game::loop::player_update));
-    Player &player = gameData.player;
-    player.size.x = TILE_SIZE;
-    player.size.y = TILE_SIZE;
-    player.pos.x = TILE_SIZE * 2;
-    player.pos.y = TILE_SIZE * 2;
-    player.rotation = 70;
-    player.movementSpeed = 0.1;
-    player.circularHitBoxRadius = static_cast<float>(TILE_SIZE) / 2.5;
-    player.deltaSpeed = {0, 0};
 }
 
 void initialize_map(GameData &gameData) {
@@ -173,6 +189,8 @@ int main() {
     gameData.tickRate = 128;
     initialize_player(gameData);
     initialize_map(gameData);
+    gameData.tickedFunctions["players_input_update"] = TickedFunction(1, &game::loop::players_input_update);
+    gameData.tickedFunctions["players_update"] = TickedFunction(1, &game::loop::players_update);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
     SetWindowSize(1280, 720);
