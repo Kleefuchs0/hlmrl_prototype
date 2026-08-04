@@ -10,11 +10,12 @@
 #include "TickedFunction.hpp"
 #include "game_draw.hpp"
 #include "tile_type.hpp"
+#include <array>
 #include <cmath>
 #include <cstddef>
-#include <ranges>
 #include <raylib.h>
 #include <raymath.h>
+#include "player_map_interaction.hpp"
 
 namespace game {
 
@@ -22,43 +23,11 @@ namespace game {
 
 
         template <size_t MAP_WIDTH, size_t MAP_HEIGHT>
-        std::vector<TileType> get_player_map_collision_tiles(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map, DebugConfiguration &debugCfg) {
-            std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> playerMapCoordinatesRange;
-
-            playerMapCoordinatesRange.first = {(player.pos.x - player.circularHitBoxRadius) / TILE_SIZE, (player.pos.y - player.circularHitBoxRadius) / TILE_SIZE};
-            playerMapCoordinatesRange.second = {std::ceil((player.pos.x + player.circularHitBoxRadius) / TILE_SIZE), std::ceil((player.pos.y + player.circularHitBoxRadius) / TILE_SIZE)};
-            std::vector<TileType> collisionTileTypes;
-
-            for (size_t y : std::views::iota(playerMapCoordinatesRange.first.second, playerMapCoordinatesRange.second.second)) {
-                for (size_t x : std::views::iota(playerMapCoordinatesRange.first.first, playerMapCoordinatesRange.second.first)) {
-
-                    if (x >= MAP_WIDTH || y >= MAP_HEIGHT) {
-                        continue;
-                    }
-
-                    Rectangle tile = {
-                        static_cast<float>(x * TILE_SIZE),
-                        static_cast<float>(y * TILE_SIZE),
-                        TILE_SIZE,
-                        TILE_SIZE
-                    };
-
-                    if (CheckCollisionCircleRec(player.pos, player.circularHitBoxRadius, tile)==false)        // Skip if not colliding
-                        continue;
-
-                    collisionTileTypes.push_back(map.get_tile_type(x, y));
-                }
-            }
-
-            return collisionTileTypes;
-        }
-
-        template <size_t MAP_WIDTH, size_t MAP_HEIGHT>
         void try_move_player(Player &player, Map<MAP_WIDTH, MAP_HEIGHT> &map, DeltaSpeed change, DebugConfiguration &debugConfiguration) {
             Position oldPlayerPos = player.pos;
             player.pos.x += change.x;
             {
-                std::vector<TileType> collisionTiles = get_player_map_collision_tiles(player, map, debugConfiguration);
+                std::array<TileType, 4> collisionTiles = get_player_map_collision_tiles(player, map, debugConfiguration);
                 if(std::count(collisionTiles.begin(), collisionTiles.end(), TileType(tile_type::WALL))) {
                     player.pos.x = oldPlayerPos.x;
                     player.deltaSpeed.x *= -0.05;
@@ -66,9 +35,10 @@ namespace game {
             }
             player.pos.y += change.y;
             {
-                std::vector<TileType> collisionTiles = get_player_map_collision_tiles(player, map, debugConfiguration);
+                std::array<TileType, 4> collisionTiles = get_player_map_collision_tiles(player, map, debugConfiguration);
                 if(std::count(collisionTiles.begin(), collisionTiles.end(), TileType(tile_type::WALL))) {
-                    player.pos.y = oldPlayerPos.y; player.deltaSpeed.y *= -0.05;
+                    player.pos.y = oldPlayerPos.y;
+                    player.deltaSpeed.y *= -0.05;
                 }
             }
         }
@@ -168,14 +138,17 @@ void initialize_player(Player &player) {
 }
 
 void initialize_map(GameData &gameData) {
+
     for (size_t x = 0; x <= 100; x++) {
         gameData.map.set_tile_type(x, 0, TileType(tile_type::WALL));
         gameData.map.set_tile_type(x, 100, TileType(tile_type::WALL));
     }
+
     for (size_t y = 1; y <= 100; y++) {
         gameData.map.set_tile_type(0, y, TileType(tile_type::WALL));
         gameData.map.set_tile_type(100, y, TileType(tile_type::WALL));
     }
+
     for (size_t x = 1; x < 100; x++) 
         for (size_t y = 1; y < 100; y++)
             gameData.map.set_tile_type(x, y, TileType(tile_type::FLOOR));
