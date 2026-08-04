@@ -17,7 +17,7 @@ struct GameData {
     uint_fast64_t tick = 0;
     uint_fast16_t tickRate = 60;
     Color screenTint = WHITE;
-    Map<DEFAULT_MAP_WIDTH, DEFAULT_MAP_HEIGHT> map;
+    Map<DEFAULT_MAP_WIDTH, DEFAULT_MAP_HEIGHT, DEFAULT_TILE_SIZE> map;
     std::map<std::string, TickedFunction> tickedFunctions;
     entt::registry registry;
     Camera2D cam;

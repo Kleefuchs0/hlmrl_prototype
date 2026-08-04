@@ -1,12 +1,11 @@
 #pragma once
 
-#include "constants.hpp"
 #include "tile_type.hpp"
 #include <array>
 #include <cassert>
 #include <cstddef>
 #include <raylib.h>
-template <size_t MAP_WIDTH, size_t MAP_HEIGHT>
+template <size_t MAP_WIDTH, size_t MAP_HEIGHT, float TILE_SIZE>
 class Map {
     private:
      std::array<std::array<TileType, MAP_WIDTH>, MAP_HEIGHT> m_rows;
@@ -17,7 +16,7 @@ class Map {
          m_rows[y][x] = tileType;
      }
 
-     constexpr inline TileType get_tile_type(size_t x, size_t y) {
+     constexpr inline TileType get_tile_type(size_t x, size_t y) const {
          assert(x < MAP_WIDTH);
          assert(y < MAP_HEIGHT);
          return m_rows[y][x];
@@ -29,5 +28,13 @@ class Map {
 
      constexpr inline size_t height() {
          return MAP_HEIGHT;
+     }
+
+     constexpr inline size_t tile_size() {
+         return TILE_SIZE;
+     }
+     
+     constexpr inline std::array<std::array<TileType, MAP_WIDTH>, MAP_HEIGHT> &data() {
+         return m_rows;
      }
 };

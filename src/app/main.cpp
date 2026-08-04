@@ -1,7 +1,7 @@
 #include "Acceleration.hpp"
 #include "BodyRotation.hpp"
 #include "DebugConfiguration.hpp"
-#include "DeltaSpeed.hpp"
+#include "SpeedVector.hpp"
 #include "EVector2.hpp"
 #include "GameData.hpp"
 #include "HitBoxRadius.hpp"
@@ -33,7 +33,7 @@ namespace game {
             return std::atan2(mousePositionRelative.y, mousePositionRelative.x) * (180 / M_PI);
         }
 
-        void game_input_update_deltaspeed(DeltaSpeed &deltaSpeed, const Acceleration &acceleration) {
+        void game_input_update_deltaspeed(SpeedVector &deltaSpeed, const Acceleration &acceleration) {
 
             bool invalidInput = true;
             EVector2 calculatedVector = {0, 0};
@@ -54,7 +54,7 @@ namespace game {
 
 
             float angle = std::atan2(calculatedVector.y, calculatedVector.x);
-            DeltaSpeed playerDeltaSpeedChangeVector;
+            SpeedVector playerDeltaSpeedChangeVector;
             if (invalidInput)
                 playerDeltaSpeedChangeVector = {0, 0};
             else
@@ -68,29 +68,29 @@ namespace game {
             Position &position = gameData.registry.get<Position>(player);
             bodyRotation = get_player_angle_to_mouse(gameData, position);
 
-            DeltaSpeed &deltaSpeed = gameData.registry.get<DeltaSpeed>(player);
+            SpeedVector &deltaSpeed = gameData.registry.get<SpeedVector>(player);
             Acceleration &acceleration = gameData.registry.get<Acceleration>(player);
             game_input_update_deltaspeed(deltaSpeed, acceleration);
         }
 
         void players_input_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
-            auto playerView = gameData.registry.view<PlayerMarker, DeltaSpeed, BodyRotation, Acceleration>();
+            auto playerView = gameData.registry.view<PlayerMarker, SpeedVector, BodyRotation, Acceleration>();
             for (const entt::entity &player : playerView) {
                 player_input_update(player, gameData, debugConfiguration);
             }
         }
 
         void player_update(const entt::entity &player, GameData &gameData, DebugConfiguration &debugConfiguration) {
-            DeltaSpeed &deltaSpeed = gameData.registry.get<DeltaSpeed>(player);
+            SpeedVector &deltaSpeed = gameData.registry.get<SpeedVector>(player);
             Position &position = gameData.registry.get<Position>(player);
             HitBoxRadius &hitBoxRadius = gameData.registry.get<HitBoxRadius>(player);
-            try_move_entity(position, deltaSpeed, hitBoxRadius, gameData.map, deltaSpeed, debugConfiguration);
+            try_move_entity_with_deltaSpeed_change_on_collision(position, deltaSpeed, hitBoxRadius, gameData.map, deltaSpeed, debugConfiguration);
 
             gameData.cam.target = position;
         }
 
         void players_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
-            auto playerView = gameData.registry.view<PlayerMarker, Position, DeltaSpeed, Acceleration, HitBoxRadius, BodyRotation>();
+            auto playerView = gameData.registry.view<PlayerMarker, Position, SpeedVector, Acceleration, HitBoxRadius, BodyRotation>();
             for (const entt::entity &player : playerView) {
                 player_update(player, gameData, debugConfiguration);
             }
@@ -138,12 +138,12 @@ Camera2D generate_default_cam(int worldWidth, int worldHeight) {
 void initialize_player(GameData &gameData) {
     auto playerEntity = gameData.registry.create();
     gameData.registry.emplace<PlayerMarker>(playerEntity);
-    gameData.registry.emplace<Position>(playerEntity, TILE_SIZE * 2, TILE_SIZE * 2);
-    gameData.registry.emplace<BodySize>(playerEntity, TILE_SIZE, TILE_SIZE);
+    gameData.registry.emplace<Position>(playerEntity, gameData.map.tile_size() * 2, gameData.map.tile_size() * 2);
+    gameData.registry.emplace<BodySize>(playerEntity, gameData.map.tile_size(), gameData.map.tile_size());
     gameData.registry.emplace<BodyRotation>(playerEntity, 70);
     gameData.registry.emplace<Acceleration>(playerEntity, 0.1);
-    gameData.registry.emplace<HitBoxRadius>(playerEntity, TILE_SIZE / 2.5);
-    gameData.registry.emplace<DeltaSpeed>(playerEntity, 0, 0);
+    gameData.registry.emplace<HitBoxRadius>(playerEntity, gameData.map.tile_size() / 2.5);
+    gameData.registry.emplace<SpeedVector>(playerEntity, 0, 0);
 }
 
 void initialize_map(GameData &gameData) {

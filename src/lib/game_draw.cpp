@@ -13,8 +13,8 @@
 
 using namespace game::loop;
 
-template<size_t MAP_WIDTH, size_t MAP_HEIGHT>
-void draw::draw_map(Map<MAP_WIDTH, MAP_HEIGHT> &map, GameData &gameData) {
+template<size_t MAP_WIDTH, size_t MAP_HEIGHT, float TILE_SIZE>
+void draw::draw_map(Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, GameData &gameData) {
 
     std::pair<Position, Position> worldScreenWindowRange;
     worldScreenWindowRange.first = GetScreenToWorld2D({0, 0}, gameData.cam);
