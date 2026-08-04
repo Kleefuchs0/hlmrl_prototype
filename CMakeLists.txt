@@ -21,7 +21,7 @@ set(GLFW_BUILD_WAYLAND ON CACHE BOOL "" FORCE) # enable wayland on linux
 set(GLFW_BUILD_X11 OFF CACHE BOOL "" FORCE) # disable x11 on linux (switch these settings around as you please)
 
 include_directories(src)
-include_directories(src/app)
+include_directories(src/game)
 include_directories(src/lib/headers)
 
 option (HLMRL_ENABLE_TESTS "Build tests for hlmrl?" ON)
@@ -113,9 +113,9 @@ if (HLMRL_ENABLE_TESTS)
     set_property(TARGET hlmrl_test PROPERTY CXX_STANDARD 23)
 endif()
 
-file(GLOB APP_SOURCE_FILES src/app/*.cpp)
+file(GLOB MAP_CREATOR_SOURCE_FILES src/game/*.cpp)
 
-add_executable(hlmrl ${APP_SOURCE_FILES})
+add_executable(hlmrl ${MAP_CREATOR_SOURCE_FILES})
 set_property(TARGET hlmrl PROPERTY CXX_STANDARD 23)
 
 target_compile_options(hlmrl PRIVATE
@@ -134,6 +134,31 @@ target_link_libraries(hlmrl
     PRIVATE fmt::fmt
 )
 
-target_include_directories(hlmrl_lib PRIVATE
+target_include_directories(hlmrl PRIVATE
+    ${raygui_SOURCE_DIR}/src
+)
+
+file(GLOB MAP_CREATOR_SOURCE_FILES src/map_creator/*.cpp)
+
+add_executable(map_creator ${MAP_CREATOR_SOURCE_FILES})
+set_property(TARGET map_creator PROPERTY CXX_STANDARD 23)
+
+target_compile_options(map_creator PRIVATE
+    $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-g;-Wall>
+    $<$<AND:$<CONFIG:Release>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-Wall>
+
+    $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:/Od;/Zi;/Wall>
+    $<$<AND:$<CONFIG:Release>,$<CXX_COMPILER_ID:MSVC>>:/O2>
+)
+
+target_link_libraries(map_creator
+    PRIVATE hlmrl_lib
+    PRIVATE raylib
+    PRIVATE nlohmann_json::nlohmann_json
+    PRIVATE EnTT::EnTT
+    PRIVATE fmt::fmt
+)
+
+target_include_directories(map_creator PRIVATE
     ${raygui_SOURCE_DIR}/src
 )
