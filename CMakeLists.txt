@@ -9,7 +9,26 @@ project(
     LANGUAGES
     CXX
 )
-add_definitions("-Wall" "-g")
+
+function(enable_target_warnings TARGET)
+    target_compile_options(${TARGET} PRIVATE
+        $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:
+            -g;-Wall;-Wextra
+        >
+        $<$<AND:$<CONFIG:Release>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:
+            -Wall;-Wextra
+        >
+
+        $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:
+            /Od;/Zi;/W4
+        >
+        $<$<AND:$<CONFIG:Release>,$<CXX_COMPILER_ID:MSVC>>:
+            /O2;/W4
+        >
+    )
+endfunction()
+
+add_definitions("-g")
 
 include(FetchContent)
 
@@ -33,6 +52,15 @@ FetchContent_Declare(raylib
   GIT_PROGRESS   TRUE
 )
 FetchContent_MakeAvailable(raylib)
+
+add_library(raylib_system INTERFACE)
+
+target_link_libraries(raylib_system INTERFACE raylib)
+
+target_include_directories(raylib_system SYSTEM INTERFACE
+    ${raylib_SOURCE_DIR}/src
+)
+
 
 FetchContent_Declare(raygui
   GIT_REPOSITORY https://github.com/raysan5/raygui
@@ -67,22 +95,16 @@ file(GLOB LIB_SOURCE_FILES src/lib/*.cpp)
 add_library(hlmrl_lib ${LIB_SOURCE_FILES})
 set_property(TARGET hlmrl_lib PROPERTY CXX_STANDARD 23)
 
-target_compile_options(hlmrl_lib PRIVATE
-    $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-g;-Wall>
-    $<$<AND:$<CONFIG:Release>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-Wall>
-
-    $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:/Od;/Zi;/Wall>
-    $<$<AND:$<CONFIG:Release>,$<CXX_COMPILER_ID:MSVC>>:/O2>
-)
+enable_target_warnings(hlmrl_lib)
 
 target_link_libraries(hlmrl_lib
-  PRIVATE raylib
+  PRIVATE raylib_system
   PRIVATE nlohmann_json::nlohmann_json
   PRIVATE EnTT::EnTT
   PRIVATE fmt::fmt
 )
 
-target_include_directories(hlmrl_lib PRIVATE
+target_include_directories(hlmrl_lib SYSTEM PRIVATE
     ${raygui_SOURCE_DIR}/src
 )
 
@@ -103,7 +125,7 @@ if (HLMRL_ENABLE_TESTS)
     add_executable(hlmrl_test ${TEST_SOURCE_FILES})
     target_link_libraries(hlmrl_test
         PRIVATE hlmrl_lib
-        PRIVATE raylib
+        PRIVATE raylib_system
         PRIVATE nlohmann_json::nlohmann_json
         PRIVATE EnTT::EnTT
         PRIVATE fmt::fmt
@@ -111,6 +133,7 @@ if (HLMRL_ENABLE_TESTS)
     )
     add_test (NAME hlmrl_test COMMAND quartix_test)
     set_property(TARGET hlmrl_test PROPERTY CXX_STANDARD 23)
+    enable_target_warnings(hlmrl_test)
 endif()
 
 file(GLOB MAP_CREATOR_SOURCE_FILES src/game/*.cpp)
@@ -118,17 +141,11 @@ file(GLOB MAP_CREATOR_SOURCE_FILES src/game/*.cpp)
 add_executable(hlmrl ${MAP_CREATOR_SOURCE_FILES})
 set_property(TARGET hlmrl PROPERTY CXX_STANDARD 23)
 
-target_compile_options(hlmrl PRIVATE
-    $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-g;-Wall>
-    $<$<AND:$<CONFIG:Release>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-Wall>
-
-    $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:/Od;/Zi;/Wall>
-    $<$<AND:$<CONFIG:Release>,$<CXX_COMPILER_ID:MSVC>>:/O2>
-)
+enable_target_warnings(hlmrl)
 
 target_link_libraries(hlmrl
     PRIVATE hlmrl_lib
-    PRIVATE raylib
+    PRIVATE raylib_system
     PRIVATE nlohmann_json::nlohmann_json
     PRIVATE EnTT::EnTT
     PRIVATE fmt::fmt
@@ -143,17 +160,11 @@ file(GLOB MAP_CREATOR_SOURCE_FILES src/map_creator/*.cpp)
 add_executable(map_creator ${MAP_CREATOR_SOURCE_FILES})
 set_property(TARGET map_creator PROPERTY CXX_STANDARD 23)
 
-target_compile_options(map_creator PRIVATE
-    $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-g;-Wall>
-    $<$<AND:$<CONFIG:Release>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-Wall>
-
-    $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:/Od;/Zi;/Wall>
-    $<$<AND:$<CONFIG:Release>,$<CXX_COMPILER_ID:MSVC>>:/O2>
-)
+enable_target_warnings(map_creator)
 
 target_link_libraries(map_creator
     PRIVATE hlmrl_lib
-    PRIVATE raylib
+    PRIVATE raylib_system
     PRIVATE nlohmann_json::nlohmann_json
     PRIVATE EnTT::EnTT
     PRIVATE fmt::fmt

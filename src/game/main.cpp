@@ -18,7 +18,6 @@
 #include "TickedFunction.hpp"
 #include "game_draw.hpp"
 #include "tile_type.hpp"
-#include <array>
 #include <cmath>
 #include <cstddef>
 #include <raylib.h>
