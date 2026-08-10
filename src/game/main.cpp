@@ -63,7 +63,7 @@ namespace game {
             deltaSpeed += playerDeltaSpeedChangeVector;
         }
 
-        void player_input_update(const entt::entity &player, GameData &gameData, DebugConfiguration &debugConfiguration) {
+        void player_input_update(const entt::entity &player, GameData &gameData, [[maybe_unused]] DebugConfiguration &debugConfiguration) {
             const auto &[bodyRotation, position, speedVector, acceleration] = gameData.registry.get<BodyRotation, Position, SpeedVector, Acceleration>(player);
             bodyRotation = get_player_angle_to_mouse(gameData, position);
 

@@ -53,7 +53,7 @@ void draw::draw_map(Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, GameData &gameDa
     }
 }
 
-void draw::draw_entity(const GameData &gameDate, const DebugConfiguration &debugConfiguration, const Position &position, const BodySize &bodySize, const BodyRotation &bodyRotation, const HitBoxRadius &hitBoxRadius) {
+void draw::draw_entity([[maybe_unused]]const GameData &gameData, const DebugConfiguration &debugConfiguration, const Position &position, const BodySize &bodySize, const BodyRotation &bodyRotation, const HitBoxRadius &hitBoxRadius) {
     DrawRectanglePro({position.x, position.y, bodySize.x, bodySize.y}, {bodySize.x / 2, bodySize.y / 2}, bodyRotation.value(), WHITE);
     if (debugConfiguration.drawHitBoxes)
         DrawCircleV(position, hitBoxRadius.value(), debugConfiguration.hitBoxColor);
