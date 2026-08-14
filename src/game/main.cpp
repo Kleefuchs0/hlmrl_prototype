@@ -30,8 +30,8 @@ namespace game {
 
 
         float get_player_angle_to_mouse(const GameData &gameData, const Position &playerPosition) {
-            Position mousePositionRelative = GetScreenToWorld2D(GetMousePosition() / (static_cast<float>(GetScreenWidth()) / gameData.worldWidth), gameData.cam) - playerPosition;
-            return std::atan2(mousePositionRelative.y, mousePositionRelative.x) * (180 / M_PI);
+            Position mousePositionRelative = GetScreenToWorld2D(GetMousePosition() / (static_cast<float>(GetScreenWidth()) / static_cast<float>(gameData.worldWidth)), gameData.cam) - playerPosition;
+            return static_cast<float>(std::atan2(static_cast<double>(mousePositionRelative.y), static_cast<double>(mousePositionRelative.x))) * static_cast<float>(180 / M_PI);
         }
 
         void player_input_update_speedvector(SpeedVector &deltaSpeed, const Acceleration &acceleration) {

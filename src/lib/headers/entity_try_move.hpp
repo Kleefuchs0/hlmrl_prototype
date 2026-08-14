@@ -53,14 +53,14 @@ entity_move_return_code try_move_entity_with_deltaSpeed_change_on_collision(Posi
     entity_move_return_code retval = try_move_entity(position, hitBoxRadius, map, change, debugConfiguration);
     switch (retval) {
         case entity_move_return_code::X_MOVED:
-            deltaSpeed.y *= -0.05;
+            deltaSpeed.y *= -0.05f;
             break;
         case entity_move_return_code::Y_MOVED:
-            deltaSpeed.x *= -0.05;
+            deltaSpeed.x *= -0.05f;
             break;
         case entity_move_return_code::NONE_MOVED:
-            deltaSpeed.x *= -0.05;
-            deltaSpeed.y *= -0.05;
+            deltaSpeed.x *= -0.05f;
+            deltaSpeed.y *= -0.05f;
             break;
         case entity_move_return_code::BOTH_MOVED:
             break;

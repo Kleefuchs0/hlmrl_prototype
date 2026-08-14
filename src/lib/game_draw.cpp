@@ -4,7 +4,6 @@
 #include "HitBoxRadius.hpp"
 #include "Position.hpp"
 #include "BodySize.hpp"
-#include "constants.hpp"
 #include "raylib.h"
 #include <cstddef>
 #include <cstdlib>

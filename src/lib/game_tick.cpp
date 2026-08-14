@@ -5,8 +5,8 @@ using namespace game::loop;
 
 
 void tick::tick_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
-    gameData.tickClock += GetFrameTime();
-    double tickTime = 1.0 / gameData.tickRate;
+    gameData.tickClock += static_cast<double>(GetFrameTime());
+    double tickTime = 1.0 / static_cast<double>(gameData.tickRate);
     if (gameData.tickClock < tickTime)
         return;
 

@@ -13,17 +13,17 @@ project(
 function(enable_target_warnings TARGET)
     target_compile_options(${TARGET} PRIVATE
         $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:
-            -g;-Wall;-Wextra
+        -g;-Wall;-Wextra;-Wpedantic;-Wdouble-promotion;-Wnull-dereference;-Wnrvo;-Wsign-conversion;-Wformat=2;-Wcast-align;-Wold-style-cast;-Wsuggest-override;-fno-omit-frame-pointer
         >
         $<$<AND:$<CONFIG:Release>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:
-            -Wall;-Wextra
+        -Wall;-Wextra;-Wpedantic;-Wdouble-promotion;-Wnull-dereference;-Wnrvo;-Wsign-conversion;-Wformat=2;-Wcast-align;-Wold-style-cast;-Wsuggest-override;-fno-omit-frame-pointer
         >
 
         $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:
-            /Od;/Zi;/W4
+        /Od;/Zi;/W4
         >
         $<$<AND:$<CONFIG:Release>,$<CXX_COMPILER_ID:MSVC>>:
-            /O2;/W4
+        /O2;/W4
         >
     )
 endfunction()
@@ -84,6 +84,13 @@ FetchContent_Declare(EnTT
 )
 FetchContent_MakeAvailable(EnTT)
 
+add_library(entt_system INTERFACE)
+target_link_libraries(entt_system INTERFACE EnTT::EnTT)
+
+target_include_directories(entt_system SYSTEM INTERFACE
+    ${entt_SOURCE_DIR}/src
+)
+
 FetchContent_Declare(
   fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt
@@ -100,7 +107,7 @@ enable_target_warnings(hlmrl_lib)
 target_link_libraries(hlmrl_lib
   PRIVATE raylib_system
   PRIVATE nlohmann_json::nlohmann_json
-  PRIVATE EnTT::EnTT
+  PRIVATE entt_system
   PRIVATE fmt::fmt
 )
 
@@ -127,7 +134,7 @@ if (HLMRL_ENABLE_TESTS)
         PRIVATE hlmrl_lib
         PRIVATE raylib_system
         PRIVATE nlohmann_json::nlohmann_json
-        PRIVATE EnTT::EnTT
+        PRIVATE entt_system
         PRIVATE fmt::fmt
         PRIVATE Catch2::Catch2WithMain
     )
@@ -147,7 +154,7 @@ target_link_libraries(hlmrl
     PRIVATE hlmrl_lib
     PRIVATE raylib_system
     PRIVATE nlohmann_json::nlohmann_json
-    PRIVATE EnTT::EnTT
+    PRIVATE entt_system
     PRIVATE fmt::fmt
 )
 
@@ -166,7 +173,7 @@ target_link_libraries(map_creator
     PRIVATE hlmrl_lib
     PRIVATE raylib_system
     PRIVATE nlohmann_json::nlohmann_json
-    PRIVATE EnTT::EnTT
+    PRIVATE entt_system
     PRIVATE fmt::fmt
 )
 
