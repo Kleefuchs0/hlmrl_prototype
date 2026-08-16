@@ -54,26 +54,26 @@ entity_move_return_code try_move_entity(Position &position, PositionMutex &posit
 }
 
 template <size_t MAP_WIDTH, size_t MAP_HEIGHT, float TILE_SIZE>
-entity_move_return_code try_move_entity_with_deltaSpeed_change_on_collision(Position &position, PositionMutex &positionMutex, SpeedVector &speedVector, SpeedVectorMutex &speedVectorMutex, HitBoxRadius &hitBoxRadius, Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, SpeedVector change, DebugConfiguration &debugConfiguration) {
+entity_move_return_code try_move_entity_with_deltaSpeed_change_on_collision(Position &position, PositionMutex &positionMutex, SpeedVector &speedVector, SpeedVectorMutex &speedVectorMutex, HitBoxRadius &hitBoxRadius, Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, SpeedVector change, DebugConfiguration &debugConfiguration, const float frameTime) {
     entity_move_return_code retval = try_move_entity(position, positionMutex, hitBoxRadius, map, change, debugConfiguration);
     
     SpeedVector speedVectorChange = {0, 0};
     switch (retval) {
         case entity_move_return_code::X_MOVED:
-            speedVectorChange.y *= -0.05f;
+            speedVectorChange.y *= -20.0f;
             break;
         case entity_move_return_code::Y_MOVED:
-            speedVectorChange.x *= -0.05f;
+            speedVectorChange.x *= -20.0f;
             break;
         case entity_move_return_code::NONE_MOVED:
-            speedVectorChange.x *= -0.05f;
-            speedVectorChange.y *= -0.05f;
+            speedVectorChange.x *= -20.0f;
+            speedVectorChange.y *= -20.0f;
             break;
         case entity_move_return_code::BOTH_MOVED:
             return retval;
     }
     std::unique_lock<SpeedVectorMutex> speedVectorLock(speedVectorMutex);
-    speedVector += speedVectorChange;
+    speedVector += speedVectorChange * frameTime;
 
     return retval;
 }

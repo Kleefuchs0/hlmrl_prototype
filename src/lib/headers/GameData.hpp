@@ -17,6 +17,8 @@ struct GameData {
     std::shared_mutex worldSizeMutex;
     int worldWidth = 0;
     int worldHeight = 0;
+    std::shared_mutex physicsAlphaMutex;
+    float physicsAlpha = 0.0f;  // How much of the next frame has gone by
     double tickClock = 0.0;
     uint_fast64_t tick = 0;
     uint_fast16_t tickRate = 60;

@@ -13,19 +13,24 @@
 #include "SpeedVector.hpp"
 #include "SpeedVectorMutex.hpp"
 #include <chrono>
+#include <cstdint>
 #include <thread>
 #include "entity_try_move.hpp"
 #include "game_entity_update.hpp"
 
-struct PhysicsManagementSettings {
-    uint16_t tickRate = 320;
+class PhysicsManagementSettings {
+    public:
+        std::shared_mutex tickRateMutex;
+        uint32_t tickRate = 320;
+        PhysicsManagementSettings(uint32_t tickRate) : tickRate(tickRate) {
+        }
 };
 
 void entity_movement_update(GameData &gameData, DebugConfiguration &debugConfiguration, Position &position, PositionMutex &positionMutex, SpeedVector &speedVector, SpeedVectorMutex &speedVectorMutex, HitBoxRadius &hitBoxRadius, const float frameTime) {
     std::shared_lock<SpeedVectorMutex> speedVectorLock(speedVectorMutex);
     SpeedVector change = speedVector * frameTime;
     speedVectorLock.unlock();
-    try_move_entity_with_deltaSpeed_change_on_collision(position, positionMutex, speedVector, speedVectorMutex, hitBoxRadius, gameData.map, change, debugConfiguration);
+    try_move_entity_with_deltaSpeed_change_on_collision(position, positionMutex, speedVector, speedVectorMutex, hitBoxRadius, gameData.map, change, debugConfiguration, frameTime);
 }
 
 void entities_movement_update(GameData &gameData, DebugConfiguration &debugConfiguration, const float frameTime) {
@@ -74,7 +79,9 @@ void update(GameData *gameData, DebugConfiguration *debugConfiguration, PhysicsM
         runningLock.unlock();
 
         tickClock += frameTime;
+        std::shared_lock tickRateLock(settings->tickRateMutex);
         double tickTime = 1.0 / settings->tickRate;
+        tickRateLock.unlock();
         std::this_thread::sleep_for(std::chrono::duration<double>(tickTime - tickClock / 1.1));
 
         while(tickClock >= tickTime) {
@@ -84,6 +91,10 @@ void update(GameData *gameData, DebugConfiguration *debugConfiguration, PhysicsM
             players_cam_update(*gameData, *debugConfiguration);
             tickClock -= tickTime;
         }
+
+        std::unique_lock<std::shared_mutex> physicsAlphaLock(gameData->physicsAlphaMutex);
+        gameData->physicsAlpha = tickTime / tickClock;
+        physicsAlphaLock.unlock();
 
         runningLock.lock();
     }
@@ -95,7 +106,7 @@ class PhysicsManagement {
         DebugConfiguration &debugConfiguration;
         PhysicsManagementSettings settings;
     public:
-        PhysicsManagement(GameData &gameData, DebugConfiguration &debugConfiguration, PhysicsManagementSettings settings) : gameData(gameData), debugConfiguration(debugConfiguration), settings(settings)  {
+        PhysicsManagement(GameData &gameData, DebugConfiguration &debugConfiguration, const uint32_t tickRate) : gameData(gameData), debugConfiguration(debugConfiguration), settings(tickRate)  {
         }
 
         void start() {
