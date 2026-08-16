@@ -1,7 +1,9 @@
 #include "Acceleration.hpp"
 #include "BodyRotation.hpp"
+#include "BodyRotationMutex.hpp"
 #include "DebugConfiguration.hpp"
 #include "PickUpMarker.hpp"
+#include "PositionMutex.hpp"
 #include "SpecificFloorFrictionSlowdown.hpp"
 #include "SpeedVector.hpp"
 #include "EVector2.hpp"
@@ -11,6 +13,7 @@
 #include "PlayerMarker.hpp"
 #include "Position.hpp"
 #include "BodySize.hpp"
+#include "SpeedVectorMutex.hpp"
 #include "WeaponMarker.hpp"
 #include "constants.hpp"
 #include <game_entity_update.hpp>
@@ -22,8 +25,10 @@
 #include "tile_type.hpp"
 #include <cmath>
 #include <cstddef>
+#include <mutex>
 #include <raylib.h>
 #include <raymath.h>
+#include <shared_mutex>
 #include "entity_try_move.hpp"
 
 namespace game {
@@ -31,12 +36,15 @@ namespace game {
     namespace loop {
 
 
-        float get_player_angle_to_mouse(const GameData &gameData, const Position &playerPosition) {
+        float get_player_angle_to_mouse(const GameData &gameData, const Position &playerPosition, PositionMutex &positionMutex) {
+            std::shared_lock<PositionMutex> positionLock(positionMutex);
             Position mousePositionRelative = GetScreenToWorld2D(GetMousePosition() / (static_cast<float>(GetScreenWidth()) / static_cast<float>(gameData.worldWidth)), gameData.cam) - playerPosition;
+            positionLock.unlock();
             return static_cast<float>(std::atan2(static_cast<double>(mousePositionRelative.y), static_cast<double>(mousePositionRelative.x))) * static_cast<float>(180 / M_PI);
         }
 
-        void player_input_update_speedvector(SpeedVector &deltaSpeed, const Acceleration &acceleration) {
+        void player_input_update_speedvector(SpeedVector &speedVector, SpeedVectorMutex &speedVectorMutex, const Acceleration &acceleration) {
+
 
             bool invalidInput = true;
             EVector2 calculatedVector = {0, 0};
@@ -62,45 +70,58 @@ namespace game {
             else
                 playerDeltaSpeedChangeVector = {cos(angle) * acceleration.value(), sin(angle) * acceleration.value()};
 
-            deltaSpeed += playerDeltaSpeedChangeVector;
+            std::unique_lock<SpeedVectorMutex> speedVectorLock(speedVectorMutex);
+            speedVector += playerDeltaSpeedChangeVector;
         }
 
-        void player_input_update(const entt::entity &player, GameData &gameData, [[maybe_unused]] DebugConfiguration &debugConfiguration) {
-            const auto &[bodyRotation, position, speedVector, acceleration] = gameData.registry.get<BodyRotation, Position, SpeedVector, Acceleration>(player);
-            bodyRotation = get_player_angle_to_mouse(gameData, position);
+        void player_input_update(GameData &gameData, [[maybe_unused]] DebugConfiguration &debugConfiguration, Position &position, PositionMutex &positionMutex, SpeedVector &speedVector, SpeedVectorMutex &speedVectorMutex, Acceleration &acceleration, BodyRotation &bodyRotation, BodyRotationMutex &bodyRotationMutex) {
+            std::unique_lock<BodyRotationMutex> bodyRotationLock(bodyRotationMutex);
+            bodyRotation = get_player_angle_to_mouse(gameData, position, positionMutex);
+            bodyRotationLock.unlock();
 
-            player_input_update_speedvector(speedVector, acceleration);
+            player_input_update_speedvector(speedVector, speedVectorMutex, acceleration);
         }
 
         void players_input_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
-            auto playerView = gameData.registry.view<PlayerMarker, SpeedVector, BodyRotation, Acceleration>();
-            for (const entt::entity &player : playerView)
-                player_input_update(player, gameData, debugConfiguration);
+            auto playerView = gameData.registry.view<PlayerMarker, Position, PositionMutex, SpeedVector, SpeedVectorMutex, BodyRotation, BodyRotationMutex, Acceleration>();
+            for (const entt::entity &player : playerView) {
+                const auto &[bodyRotation, bodyRotationMutex, position, positionMutex, speedVector, speedVectorMutex, acceleration] = gameData.registry.get<BodyRotation, BodyRotationMutex, Position, PositionMutex, SpeedVector, SpeedVectorMutex, Acceleration>(player);
+                player_input_update(gameData, debugConfiguration, position, positionMutex, speedVector, speedVectorMutex, acceleration, bodyRotation, bodyRotationMutex);
+            }
         }
 
-        void player_update(const entt::entity &player, GameData &gameData, DebugConfiguration &debugConfiguration) {
-            //TODO: Implement bounds checking for player.
-            const auto &[speedVector, position, hitBoxRadius] = gameData.registry.get<SpeedVector, Position, HitBoxRadius>(player);
+        void entity_movement_update(GameData &gameData, DebugConfiguration &debugConfiguration, Position &position, PositionMutex &positionMutex, SpeedVector &speedVector, SpeedVectorMutex &speedVectorMutex, HitBoxRadius &hitBoxRadius) {
             try_move_entity_with_deltaSpeed_change_on_collision(position, speedVector, hitBoxRadius, gameData.map, speedVector, debugConfiguration);
 
-            gameData.cam.target = position;
         }
 
-        void players_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
-            auto playerView = gameData.registry.view<PlayerMarker, Position, SpeedVector, Acceleration, HitBoxRadius, BodyRotation>();
-            for (const entt::entity &player : playerView)
-                player_update(player, gameData, debugConfiguration);
+        void entites_movement_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
+            auto entityView = gameData.registry.view<Position, PositionMutex, SpeedVector, SpeedVectorMutex, Acceleration, HitBoxRadius>();
+            for (const entt::entity &entity : entityView) {
+                const auto &[position, positionMutex, speedVector, speedVectorMutex, hitBoxRadius] = gameData.registry.get<Position, PositionMutex, SpeedVector, SpeedVectorMutex, HitBoxRadius>(entity);
+                entity_movement_update(gameData, debugConfiguration, position, positionMutex, speedVector, speedVectorMutex, hitBoxRadius);
+            }
         }
 
-        void pickup_update(BodyRotation &bodyRotation) {
+        void players_cam_update(GameData &gameData, [[maybe_unused]] DebugConfiguration &debugConfiguration) {
+            auto playerView = gameData.registry.view<PlayerMarker, Position, PositionMutex>();
+            for (const entt::entity &player : playerView) {
+                const auto &[position, positionMutex] = gameData.registry.get<Position, PositionMutex>(player);
+                std::shared_lock<PositionMutex> positionLock(positionMutex);
+                gameData.cam.target = position;
+            }
+        }
+
+        void pickup_update(BodyRotation &bodyRotation, BodyRotationMutex &bodyRotationMutex) {
+            std::unique_lock bodyRotationLock(bodyRotationMutex);
             bodyRotation += 0.5f;
         }
 
         void pickups_update(GameData &gameData, [[maybe_unused]] DebugConfiguration &debugConfiguration) {
-            auto weaponView = gameData.registry.view<PickUpMarker, BodyRotation>();
+            auto weaponView = gameData.registry.view<PickUpMarker, BodyRotation, BodyRotationMutex>();
             for (const entt::entity &weapon : weaponView) {
-                BodyRotation &bodyRotation = gameData.registry.get<BodyRotation>(weapon);
-                pickup_update(bodyRotation);
+                const auto &[bodyRotation, bodyRotationMutex] = gameData.registry.get<BodyRotation, BodyRotationMutex>(weapon);
+                pickup_update(bodyRotation, bodyRotationMutex);
             }
         }
 
@@ -147,11 +168,14 @@ void initialize_player(GameData &gameData) {
     auto playerEntity = gameData.registry.create();
     gameData.registry.emplace<PlayerMarker>(playerEntity);
     gameData.registry.emplace<Position>(playerEntity, gameData.map.tile_size() * 2, gameData.map.tile_size() * 2);
+    gameData.registry.emplace<PositionMutex>(playerEntity);
     gameData.registry.emplace<BodySize>(playerEntity, gameData.map.tile_size(), gameData.map.tile_size());
     gameData.registry.emplace<BodyRotation>(playerEntity, 70);
+    gameData.registry.emplace<BodyRotationMutex>(playerEntity);
     gameData.registry.emplace<Acceleration>(playerEntity, 0.2);
     gameData.registry.emplace<HitBoxRadius>(playerEntity, gameData.map.tile_size() / 2.5);
     gameData.registry.emplace<SpeedVector>(playerEntity, 0, 0);
+    gameData.registry.emplace<SpeedVectorMutex>(playerEntity);
     gameData.registry.emplace<SpecificFloorFrictionSlowdown>(playerEntity, .02);
 }
 
@@ -160,9 +184,11 @@ void initialize_test_weapon(GameData &gameData) {
     gameData.registry.emplace<WeaponMarker>(weaponEntity);
     gameData.registry.emplace<PickUpMarker>(weaponEntity);
     gameData.registry.emplace<Position>(weaponEntity, gameData.map.tile_size() * 4, gameData.map.tile_size() * 4);
+    gameData.registry.emplace<PositionMutex>(weaponEntity);
     gameData.registry.emplace<BodySize>(weaponEntity, gameData.map.tile_size() / 2, gameData.map.tile_size() / 2);
     gameData.registry.emplace<HitBoxRadius>(weaponEntity, gameData.map.tile_size() / 5);
     gameData.registry.emplace<BodyRotation>(weaponEntity, 0);
+    gameData.registry.emplace<BodyRotationMutex>(weaponEntity);
 }
 
 void initialize_map(GameData &gameData) {
@@ -190,8 +216,9 @@ int main() {
     initialize_map(gameData);
     initialize_test_weapon(gameData);
     gameData.tickedFunctions["players_input_update"] = TickedFunction(1, &game::loop::players_input_update);
-    gameData.tickedFunctions["players_update"] = TickedFunction(1, &game::loop::players_update);
+    gameData.tickedFunctions["entities_movement_update"] = TickedFunction(1, &game::loop::entites_movement_update);
     gameData.tickedFunctions["entities_friction_update"] = TickedFunction(1, &game::loop::update::entities_friction);
+    gameData.tickedFunctions["players_cam_update"] = TickedFunction(1, &game::loop::players_cam_update);
     gameData.tickedFunctions["pickups_update"] = TickedFunction(1, &game::loop::pickups_update);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);

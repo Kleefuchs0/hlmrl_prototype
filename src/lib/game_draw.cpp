@@ -1,12 +1,15 @@
 #include "game_draw.hpp"
 #include "BodyRotation.hpp"
+#include "BodyRotationMutex.hpp"
 #include "DebugConfiguration.hpp"
 #include "HitBoxRadius.hpp"
 #include "Position.hpp"
 #include "BodySize.hpp"
+#include "PositionMutex.hpp"
 #include "raylib.h"
 #include <cstddef>
 #include <cstdlib>
+#include <shared_mutex>
 #include <stddef.h>
 #include <utility>
 
@@ -52,18 +55,21 @@ void draw::draw_map(Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, GameData &gameDa
     }
 }
 
-void draw::draw_entity([[maybe_unused]]const GameData &gameData, const DebugConfiguration &debugConfiguration, const Position &position, const BodySize &bodySize, const BodyRotation &bodyRotation, const HitBoxRadius &hitBoxRadius) {
+void draw::draw_entity([[maybe_unused]]const GameData &gameData, const DebugConfiguration &debugConfiguration, const Position &position, PositionMutex &positionMutex, const BodySize &bodySize, const BodyRotation &bodyRotation, BodyRotationMutex &bodyRotationMutex, const HitBoxRadius &hitBoxRadius) {
+    std::shared_lock<PositionMutex> positionLock(positionMutex);
+    std::shared_lock<BodyRotationMutex> bodyRotationLock(bodyRotationMutex);
     DrawRectanglePro({position.x, position.y, bodySize.x, bodySize.y}, {bodySize.x / 2, bodySize.y / 2}, bodyRotation.value(), WHITE);
+    bodyRotationLock.unlock();
     if (debugConfiguration.drawHitBoxes)
         DrawCircleV(position, hitBoxRadius.value(), debugConfiguration.hitBoxColor);
 }
 
 void draw::draw_entities(GameData &gameData, DebugConfiguration &debugConfiguration) {
     entt::registry &registry = gameData.registry;
-    auto entity_view = gameData.registry.view<Position, BodySize, HitBoxRadius, BodyRotation>();
+    auto entity_view = gameData.registry.view<Position, PositionMutex, BodySize, HitBoxRadius, BodyRotation, BodyRotationMutex>();
     for (const entt::entity &entity : entity_view) {
-        const auto &[position, bodySize, bodyRotation, hitBoxRadius] = registry.get<Position, BodySize, BodyRotation, HitBoxRadius>(entity);
-        draw_entity(gameData, debugConfiguration, position, bodySize, bodyRotation, hitBoxRadius);
+        const auto &[position, positionMutex, bodySize, bodyRotation, bodyRotationMutex, hitBoxRadius] = registry.get<Position, PositionMutex, BodySize, BodyRotation, BodyRotationMutex, HitBoxRadius>(entity);
+        draw_entity(gameData, debugConfiguration, position, positionMutex, bodySize, bodyRotation, bodyRotationMutex, hitBoxRadius);
     }
 }
 
