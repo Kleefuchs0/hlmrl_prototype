@@ -1,7 +1,8 @@
 #include "Acceleration.hpp"
 #include "BodyRotation.hpp"
 #include "DebugConfiguration.hpp"
-#include "SpecificFrictionSlowdown.hpp"
+#include "PickUpMarker.hpp"
+#include "SpecificFloorFrictionSlowdown.hpp"
 #include "SpeedVector.hpp"
 #include "EVector2.hpp"
 #include "GameData.hpp"
@@ -10,6 +11,7 @@
 #include "PlayerMarker.hpp"
 #include "Position.hpp"
 #include "BodySize.hpp"
+#include "WeaponMarker.hpp"
 #include "constants.hpp"
 #include "entity_map_interaction.hpp"
 #include "entt/entity/fwd.hpp"
@@ -90,7 +92,7 @@ namespace game {
                 player_update(player, gameData, debugConfiguration);
         }
 
-        void entity_update_floor_friction(GameData &gameData, DebugConfiguration &debugConfiguration, Position &position, SpeedVector &speedVector, HitBoxRadius &hitBoxRadius, SpecificFloorFrictionSlowdown &specificFloorFrictionSlowdown) {
+        void entity_update_floor_friction(GameData &gameData, const DebugConfiguration &debugConfiguration, Position &position, SpeedVector &speedVector, HitBoxRadius &hitBoxRadius, SpecificFloorFrictionSlowdown &specificFloorFrictionSlowdown) {
             std::array<TileType, 4> tiles = get_map_collision_tiles(position, hitBoxRadius, gameData.map, debugConfiguration);
             for (TileType tile : tiles) {
                 if (tile.value() >= TILE_TYPE_SECTION_START_FLOORS && tile.value() < TILE_TYPE_SECTION_START_WALLS) {
@@ -104,6 +106,18 @@ namespace game {
             for (const entt::entity &entity : entityView) {
                 const auto &[position, speedVector, hitBoxRadius, specificFloorFritionSlowdown] = gameData.registry.get<Position, SpeedVector, HitBoxRadius, SpecificFloorFrictionSlowdown>(entity);
                 entity_update_floor_friction(gameData, debugConfiguration, position, speedVector, hitBoxRadius, specificFloorFritionSlowdown);
+            }
+        }
+
+        void pickup_update(BodyRotation &bodyRotation) {
+            bodyRotation += 0.5f;
+        }
+
+        void pickups_update(GameData &gameData, [[maybe_unused]] DebugConfiguration &debugConfiguration) {
+            auto weaponView = gameData.registry.view<PickUpMarker, BodyRotation>();
+            for (const entt::entity &weapon : weaponView) {
+                BodyRotation &bodyRotation = gameData.registry.get<BodyRotation>(weapon);
+                pickup_update(bodyRotation);
             }
         }
 
@@ -158,6 +172,16 @@ void initialize_player(GameData &gameData) {
     gameData.registry.emplace<SpecificFloorFrictionSlowdown>(playerEntity, .02);
 }
 
+void initialize_test_weapon(GameData &gameData) {
+    auto weaponEntity = gameData.registry.create();
+    gameData.registry.emplace<WeaponMarker>(weaponEntity);
+    gameData.registry.emplace<PickUpMarker>(weaponEntity);
+    gameData.registry.emplace<Position>(weaponEntity, gameData.map.tile_size() * 4, gameData.map.tile_size() * 4);
+    gameData.registry.emplace<BodySize>(weaponEntity, gameData.map.tile_size() / 2, gameData.map.tile_size() / 2);
+    gameData.registry.emplace<HitBoxRadius>(weaponEntity, gameData.map.tile_size() / 5);
+    gameData.registry.emplace<BodyRotation>(weaponEntity, 0);
+}
+
 void initialize_map(GameData &gameData) {
 
     for (size_t x = 0; x < DEFAULT_MAP_WIDTH; x++) {
@@ -181,9 +205,11 @@ int main() {
     gameData.tickRate = 128;
     initialize_player(gameData);
     initialize_map(gameData);
+    initialize_test_weapon(gameData);
     gameData.tickedFunctions["players_input_update"] = TickedFunction(1, &game::loop::players_input_update);
     gameData.tickedFunctions["players_update"] = TickedFunction(1, &game::loop::players_update);
     gameData.tickedFunctions["entities_friction_update"] = TickedFunction(1, &game::loop::entities_update_friction);
+    gameData.tickedFunctions["pickups_update"] = TickedFunction(1, &game::loop::pickups_update);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
     SetWindowSize(1280, 720);
