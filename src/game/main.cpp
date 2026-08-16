@@ -13,7 +13,7 @@
 #include "BodySize.hpp"
 #include "WeaponMarker.hpp"
 #include "constants.hpp"
-#include "entity_map_interaction.hpp"
+#include <game_entity_update.hpp>
 #include "entt/entity/fwd.hpp"
 #include "fmt/core.h"
 #include "game_tick.hpp"
@@ -90,23 +90,6 @@ namespace game {
             auto playerView = gameData.registry.view<PlayerMarker, Position, SpeedVector, Acceleration, HitBoxRadius, BodyRotation>();
             for (const entt::entity &player : playerView)
                 player_update(player, gameData, debugConfiguration);
-        }
-
-        void entity_update_floor_friction(GameData &gameData, const DebugConfiguration &debugConfiguration, Position &position, SpeedVector &speedVector, HitBoxRadius &hitBoxRadius, SpecificFloorFrictionSlowdown &specificFloorFrictionSlowdown) {
-            std::array<TileType, 4> tiles = get_map_collision_tiles(position, hitBoxRadius, gameData.map, debugConfiguration);
-            for (TileType tile : tiles) {
-                if (tile.value() >= TILE_TYPE_SECTION_START_FLOORS && tile.value() < TILE_TYPE_SECTION_START_WALLS) {
-                    speedVector /= 1 + specificFloorFrictionSlowdown.value();
-                }
-            }
-        }
-
-        void entities_update_friction(GameData &gameData, DebugConfiguration &debugConfiguration) {
-            auto entityView = gameData.registry.view<Position, SpeedVector, HitBoxRadius, SpecificFloorFrictionSlowdown>();
-            for (const entt::entity &entity : entityView) {
-                const auto &[position, speedVector, hitBoxRadius, specificFloorFritionSlowdown] = gameData.registry.get<Position, SpeedVector, HitBoxRadius, SpecificFloorFrictionSlowdown>(entity);
-                entity_update_floor_friction(gameData, debugConfiguration, position, speedVector, hitBoxRadius, specificFloorFritionSlowdown);
-            }
         }
 
         void pickup_update(BodyRotation &bodyRotation) {
@@ -208,7 +191,7 @@ int main() {
     initialize_test_weapon(gameData);
     gameData.tickedFunctions["players_input_update"] = TickedFunction(1, &game::loop::players_input_update);
     gameData.tickedFunctions["players_update"] = TickedFunction(1, &game::loop::players_update);
-    gameData.tickedFunctions["entities_friction_update"] = TickedFunction(1, &game::loop::entities_update_friction);
+    gameData.tickedFunctions["entities_friction_update"] = TickedFunction(1, &game::loop::update::entities_friction);
     gameData.tickedFunctions["pickups_update"] = TickedFunction(1, &game::loop::pickups_update);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
