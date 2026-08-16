@@ -9,7 +9,7 @@
 #include <ranges>
 
 template <size_t MAP_WIDTH, size_t MAP_HEIGHT, float TILE_SIZE>
-std::array<TileType, 4> get_map_collision_tiles(const Position &position, const HitBoxRadius &hitBoxRadius, const Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, [[maybe_unused]] const DebugConfiguration &debugCfg) {
+std::array<TileType, 4> get_map_collision_tiles(const Position position, const HitBoxRadius hitBoxRadius, const Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, [[maybe_unused]] const DebugConfiguration &debugCfg) {
     std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> playerMapCoordinatesRange;
 
     playerMapCoordinatesRange.first = {(position.x - hitBoxRadius.value()) / TILE_SIZE, (position.y - hitBoxRadius.value()) / TILE_SIZE};
