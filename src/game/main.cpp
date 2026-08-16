@@ -2,6 +2,7 @@
 #include "BodyRotation.hpp"
 #include "BodyRotationMutex.hpp"
 #include "DebugConfiguration.hpp"
+#include "PhysicsManagement.hpp"
 #include "PickUpMarker.hpp"
 #include "PositionMutex.hpp"
 #include "SpecificFloorFrictionSlowdown.hpp"
@@ -90,44 +91,6 @@ namespace game {
             }
         }
 
-        void entity_movement_update(GameData &gameData, DebugConfiguration &debugConfiguration, Position &position, PositionMutex &positionMutex, SpeedVector &speedVector, SpeedVectorMutex &speedVectorMutex, HitBoxRadius &hitBoxRadius) {
-            std::shared_lock<SpeedVectorMutex> speedVectorLock(speedVectorMutex);
-            SpeedVector change = speedVector;
-            speedVectorLock.unlock();
-            try_move_entity_with_deltaSpeed_change_on_collision(position, positionMutex, speedVector, speedVectorMutex, hitBoxRadius, gameData.map, change, debugConfiguration);
-        }
-
-        void entities_movement_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
-            auto entityView = gameData.registry.view<Position, PositionMutex, SpeedVector, SpeedVectorMutex, Acceleration, HitBoxRadius>();
-            std::shared_lock<MapMutex> mapLock(gameData.mapMutex);
-            for (const entt::entity &entity : entityView) {
-                const auto &[position, positionMutex, speedVector, speedVectorMutex, hitBoxRadius] = gameData.registry.get<Position, PositionMutex, SpeedVector, SpeedVectorMutex, HitBoxRadius>(entity);
-                entity_movement_update(gameData, debugConfiguration, position, positionMutex, speedVector, speedVectorMutex, hitBoxRadius);
-            }
-        }
-
-        void players_cam_update(GameData &gameData, [[maybe_unused]] DebugConfiguration &debugConfiguration) {
-            auto playerView = gameData.registry.view<PlayerMarker, Position, PositionMutex>();
-            for (const entt::entity &player : playerView) {
-                const auto &[position, positionMutex] = gameData.registry.get<Position, PositionMutex>(player);
-                std::shared_lock<PositionMutex> positionLock(positionMutex);
-                gameData.cam.target = position;
-            }
-        }
-
-        void pickup_update(BodyRotation &bodyRotation, BodyRotationMutex &bodyRotationMutex) {
-            std::unique_lock bodyRotationLock(bodyRotationMutex);
-            bodyRotation += 0.5f;
-        }
-
-        void pickups_update(GameData &gameData, [[maybe_unused]] DebugConfiguration &debugConfiguration) {
-            auto weaponView = gameData.registry.view<PickUpMarker, BodyRotation, BodyRotationMutex>();
-            for (const entt::entity &weapon : weaponView) {
-                const auto &[bodyRotation, bodyRotationMutex] = gameData.registry.get<BodyRotation, BodyRotationMutex>(weapon);
-                pickup_update(bodyRotation, bodyRotationMutex);
-            }
-        }
-
         void misc_update(DebugConfiguration &debugConfiguration) {
             if(IsKeyPressed(KEY_F11))
                 ToggleFullscreen();
@@ -175,11 +138,11 @@ void initialize_player(GameData &gameData) {
     gameData.registry.emplace<BodySize>(playerEntity, gameData.map.tile_size(), gameData.map.tile_size());
     gameData.registry.emplace<BodyRotation>(playerEntity, 70);
     gameData.registry.emplace<BodyRotationMutex>(playerEntity);
-    gameData.registry.emplace<Acceleration>(playerEntity, 0.2);
+    gameData.registry.emplace<Acceleration>(playerEntity, 20);
     gameData.registry.emplace<HitBoxRadius>(playerEntity, gameData.map.tile_size() / 2.5);
     gameData.registry.emplace<SpeedVector>(playerEntity, 0, 0);
     gameData.registry.emplace<SpeedVectorMutex>(playerEntity);
-    gameData.registry.emplace<SpecificFloorFrictionSlowdown>(playerEntity, .02);
+    gameData.registry.emplace<SpecificFloorFrictionSlowdown>(playerEntity, 2);
 }
 
 void initialize_test_weapon(GameData &gameData) {
@@ -219,20 +182,22 @@ int main() {
     initialize_map(gameData);
     initialize_test_weapon(gameData);
     gameData.tickedFunctions["players_input_update"] = TickedFunction(1, &game::loop::players_input_update);
-    gameData.tickedFunctions["entities_movement_update"] = TickedFunction(1, &game::loop::entities_movement_update);
-    gameData.tickedFunctions["entities_friction_update"] = TickedFunction(1, &game::loop::update::entities_friction);
-    gameData.tickedFunctions["players_cam_update"] = TickedFunction(1, &game::loop::players_cam_update);
-    gameData.tickedFunctions["pickups_update"] = TickedFunction(1, &game::loop::pickups_update);
+    PhysicsManagement physicsManagement(gameData, debugConfiguration, {});
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
+    SetTargetFPS(320);
     gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
     SetWindowSize(1280, 720);
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Entering game-loop");
+    physicsManagement.start();
     game::loop::entry(gameData, debugConfiguration);
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Closing and unloading game");
     UnloadRenderTexture(gameData.renderTexture);
     CloseWindow();
+    std::unique_lock<std::shared_mutex> runningLock(gameData.runningMutex);
+    gameData.running = false;
+    runningLock.unlock();
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Unlaoded everything");
     return 0;

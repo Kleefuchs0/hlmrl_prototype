@@ -1,3 +1,4 @@
+#pragma once
 
 #include "DebugConfiguration.hpp"
 #include "PositionMutex.hpp"
