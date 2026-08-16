@@ -1,3 +1,4 @@
+#include "MapMutex.hpp"
 #include <game_entity_update.hpp>
 
 using namespace game::loop;
@@ -13,6 +14,7 @@ void update::entity_floor_friction(GameData &gameData, const DebugConfiguration 
 
 void update::entities_friction(GameData &gameData, DebugConfiguration &debugConfiguration) {
     auto entityView = gameData.registry.view<Position, SpeedVector, HitBoxRadius, SpecificFloorFrictionSlowdown>();
+    std::shared_lock<MapMutex> mapLock(gameData.mapMutex);
     for (const entt::entity &entity : entityView) {
         const auto &[position, speedVector, hitBoxRadius, specificFloorFritionSlowdown] = gameData.registry.get<Position, SpeedVector, HitBoxRadius, SpecificFloorFrictionSlowdown>(entity);
         entity_floor_friction(gameData, debugConfiguration, position, speedVector, hitBoxRadius, specificFloorFritionSlowdown);

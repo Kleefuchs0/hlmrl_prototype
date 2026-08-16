@@ -19,8 +19,12 @@ template<size_t MAP_WIDTH, size_t MAP_HEIGHT, float TILE_SIZE>
 void draw::draw_map(Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, GameData &gameData) {
 
     std::pair<Position, Position> worldScreenWindowRange;
+    std::shared_lock<std::shared_mutex> worldSizeLock(gameData.worldSizeMutex);
+    std::shared_lock<Camera2DMutex> camLock(gameData.camMutex);
     worldScreenWindowRange.first = GetScreenToWorld2D({0, 0}, gameData.cam);
     worldScreenWindowRange.second = GetScreenToWorld2D({static_cast<float>(gameData.worldWidth), static_cast<float>(gameData.worldHeight)}, gameData.cam);
+    worldSizeLock.unlock();
+    camLock.unlock();
 
     std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> tileRanges;
     tileRanges.first = {worldScreenWindowRange.first.x / TILE_SIZE, worldScreenWindowRange.first.y / TILE_SIZE};
@@ -36,6 +40,7 @@ void draw::draw_map(Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, GameData &gameDa
     //     tileRanges.second.second = 1;
 
     
+    std::shared_lock<MapMutex> mapLock(gameData.mapMutex);
     for (size_t y : std::views::iota(tileRanges.first.second, tileRanges.second.second)) {
         for (size_t x : std::views::iota(tileRanges.first.first, tileRanges.second.first)) {
             TileType tileType = map.get_tile_type(x, y);

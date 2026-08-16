@@ -97,8 +97,9 @@ namespace game {
             try_move_entity_with_deltaSpeed_change_on_collision(position, positionMutex, speedVector, speedVectorMutex, hitBoxRadius, gameData.map, change, debugConfiguration);
         }
 
-        void entites_movement_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
+        void entities_movement_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
             auto entityView = gameData.registry.view<Position, PositionMutex, SpeedVector, SpeedVectorMutex, Acceleration, HitBoxRadius>();
+            std::shared_lock<MapMutex> mapLock(gameData.mapMutex);
             for (const entt::entity &entity : entityView) {
                 const auto &[position, positionMutex, speedVector, speedVectorMutex, hitBoxRadius] = gameData.registry.get<Position, PositionMutex, SpeedVector, SpeedVectorMutex, HitBoxRadius>(entity);
                 entity_movement_update(gameData, debugConfiguration, position, positionMutex, speedVector, speedVectorMutex, hitBoxRadius);
@@ -218,7 +219,7 @@ int main() {
     initialize_map(gameData);
     initialize_test_weapon(gameData);
     gameData.tickedFunctions["players_input_update"] = TickedFunction(1, &game::loop::players_input_update);
-    gameData.tickedFunctions["entities_movement_update"] = TickedFunction(1, &game::loop::entites_movement_update);
+    gameData.tickedFunctions["entities_movement_update"] = TickedFunction(1, &game::loop::entities_movement_update);
     gameData.tickedFunctions["entities_friction_update"] = TickedFunction(1, &game::loop::update::entities_friction);
     gameData.tickedFunctions["players_cam_update"] = TickedFunction(1, &game::loop::players_cam_update);
     gameData.tickedFunctions["pickups_update"] = TickedFunction(1, &game::loop::pickups_update);
