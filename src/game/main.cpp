@@ -182,9 +182,9 @@ int main() {
     initialize_map(gameData);
     initialize_test_weapon(gameData);
     gameData.tickedFunctions["players_input_update"] = TickedFunction(1, &game::loop::players_input_update);
-    PhysicsManagement physicsManagement(gameData, debugConfiguration, {});
+    PhysicsManagement physicsManagement(gameData, debugConfiguration, {320});
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
-    SetTargetFPS(320);
+    SetTargetFPS(180);
     gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
     SetWindowSize(1280, 720);
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
