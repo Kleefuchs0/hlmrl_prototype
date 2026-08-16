@@ -91,8 +91,10 @@ namespace game {
         }
 
         void entity_movement_update(GameData &gameData, DebugConfiguration &debugConfiguration, Position &position, PositionMutex &positionMutex, SpeedVector &speedVector, SpeedVectorMutex &speedVectorMutex, HitBoxRadius &hitBoxRadius) {
-            try_move_entity_with_deltaSpeed_change_on_collision(position, speedVector, hitBoxRadius, gameData.map, speedVector, debugConfiguration);
-
+            std::shared_lock<SpeedVectorMutex> speedVectorLock(speedVectorMutex);
+            SpeedVector change = speedVector;
+            speedVectorLock.unlock();
+            try_move_entity_with_deltaSpeed_change_on_collision(position, positionMutex, speedVector, speedVectorMutex, hitBoxRadius, gameData.map, change, debugConfiguration);
         }
 
         void entites_movement_update(GameData &gameData, DebugConfiguration &debugConfiguration) {

@@ -2,6 +2,7 @@
 #include "LogLevel.hpp"
 #include "Map.hpp"
 #include "Position.hpp"
+#include "PositionMutex.hpp"
 #include "catch2/catch_test_macros.hpp"
 #include "entt/entt.hpp"
 #include "tile_type.hpp"
@@ -44,26 +45,27 @@ TEST_CASE("Testing functions for entity game interactions", "[entity_game_intera
         map.set_tile_type(2, 0, tile_type::WALL);
 
         Position pos = {64.0f * 2, 64.0f * 2};
+        PositionMutex posMut;
         HitBoxRadius radius = 32.0f;
         DebugConfiguration debugConfiguration;
         debugConfiguration.logLevel = LogLevel::DEBUG;
 
         {
-            entity_move_return_code retval = try_move_entity(pos, radius, map, {-32, -32}, debugConfiguration);
+            entity_move_return_code retval = try_move_entity(pos, posMut, radius, map, {-32, -32}, debugConfiguration);
             REQUIRE(retval == entity_move_return_code::BOTH_MOVED);
             REQUIRE(pos.x == 96.0f);
             REQUIRE(pos.y == 96.0f);
         }
 
         {
-            entity_move_return_code retval = try_move_entity(pos, radius, map, {-16, 0}, debugConfiguration);
+            entity_move_return_code retval = try_move_entity(pos, posMut, radius, map, {-16, 0}, debugConfiguration);
             REQUIRE(retval == entity_move_return_code::Y_MOVED);
             REQUIRE(pos.x == 96.0f);
             REQUIRE(pos.y == 96.0f);
         }
 
         {
-            entity_move_return_code retval = try_move_entity(pos, radius, map, {-16, -16}, debugConfiguration);
+            entity_move_return_code retval = try_move_entity(pos, posMut, radius, map, {-16, -16}, debugConfiguration);
             REQUIRE(retval == entity_move_return_code::NONE_MOVED);
             REQUIRE(pos.x == 96.0f);
             REQUIRE(pos.y == 96.0f);
