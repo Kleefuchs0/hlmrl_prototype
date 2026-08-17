@@ -1,5 +1,5 @@
-#include "game_tick.hpp"
-#include "DebugConfiguration.hpp"
+#include "game/tick.hpp"
+#include "lib/DebugConfiguration.hpp"
 
 using namespace game::loop;
 

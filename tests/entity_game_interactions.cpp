@@ -1,14 +1,14 @@
-#include "DebugConfiguration.hpp"
-#include "LogLevel.hpp"
-#include "Map.hpp"
-#include "Position.hpp"
-#include "PositionMutex.hpp"
+#include "lib/DebugConfiguration.hpp"
+#include "lib/LogLevel.hpp"
+#include "lib/Map.hpp"
+#include "lib/Position.hpp"
+#include "lib/PositionMutex.hpp"
+#include "lib/tile_type.hpp"
 #include "catch2/catch_test_macros.hpp"
 #include "entt/entt.hpp"
-#include "tile_type.hpp"
 #include <catch2/catch_all.hpp>
-#include <entity_map_interaction.hpp>
-#include <entity_try_move.hpp>
+#include "lib/entity_map_interaction.hpp"
+#include "lib/entity_try_move.hpp"
 
 TEST_CASE("Testing functions for entity game interactions", "[entity_game_interaction]") {
     SECTION("Testing entity collision detection with tiles") {

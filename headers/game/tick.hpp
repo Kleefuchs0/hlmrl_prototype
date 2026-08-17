@@ -1,5 +1,5 @@
 #pragma once
-#include "GameData.hpp"
+#include "lib/GameData.hpp"
 
 namespace game {
 

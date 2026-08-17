@@ -39,10 +39,7 @@ set(BUILD_GAMES    OFF CACHE BOOL "" FORCE) # don't build the supplied example g
 set(GLFW_BUILD_WAYLAND ON CACHE BOOL "" FORCE) # enable wayland on linux
 set(GLFW_BUILD_X11 OFF CACHE BOOL "" FORCE) # disable x11 on linux (switch these settings around as you please)
 
-include_directories(src)
-include_directories(src/game)
-include_directories(src/game/headers)
-include_directories(src/lib/headers)
+include_directories(headers)
 
 option (HLMRL_ENABLE_TESTS "Build tests for hlmrl?" ON)
 

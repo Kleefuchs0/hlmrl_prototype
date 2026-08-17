@@ -1,12 +1,12 @@
 #pragma once
 
-#include "BodyRotation.hpp"
-#include "BodyRotationMutex.hpp"
-#include "BodySize.hpp"
-#include "GameData.hpp"
-#include "HitBoxRadius.hpp"
-#include "Position.hpp"
-#include "PositionMutex.hpp"
+#include "lib/BodyRotation.hpp"
+#include "lib/BodyRotationMutex.hpp"
+#include "lib/BodySize.hpp"
+#include "lib/GameData.hpp"
+#include "lib/HitBoxRadius.hpp"
+#include "lib/Position.hpp"
+#include "lib/PositionMutex.hpp"
 
 namespace game {
 
