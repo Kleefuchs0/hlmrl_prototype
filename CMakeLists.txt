@@ -49,7 +49,7 @@ option (HLMRL_ENABLE_TESTS "Build tests for hlmrl?" ON)
 find_package(raylib CONFIG QUIET)
 
 if(NOT raylib_FOUND)
-    message(STATUS "raygui not found, fetching it...")
+    message(STATUS "raylib not found, fetching it...")
 
     FetchContent_Declare(raylib
         GIT_REPOSITORY https://github.com/raysan5/raylib.git
@@ -87,18 +87,32 @@ if(NOT raygui_FOUND)
 
 endif()
 
+find_package(nlohmann_json CONFIG QUIET)
 
+if (NOT nlohmann_json_FOUND)
 
-FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
-FetchContent_MakeAvailable(json)
+    message(STATUS "nlohmann_json not found, fetching it...")
 
+    FetchContent_Declare(nlohmann_json
+        URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
+    )
+    FetchContent_MakeAvailable(nlohmann_json)
 
-FetchContent_Declare(EnTT
-  GIT_REPOSITORY https://github.com/skypjack/entt
-  GIT_TAG        main
-  GIT_PROGRESS   TRUE
-)
-FetchContent_MakeAvailable(EnTT)
+endif()
+
+find_package(EnTT CONFIG QUIET)
+
+if (NOT EnTT_FOUND)
+
+    message(STATUS "EnTT not found, fetching it...")
+    FetchContent_Declare(EnTT
+        GIT_REPOSITORY https://github.com/skypjack/entt
+        GIT_TAG        main
+        GIT_PROGRESS   TRUE
+    )
+
+    FetchContent_MakeAvailable(EnTT)
+endif()
 
 add_library(entt_system INTERFACE)
 target_link_libraries(entt_system INTERFACE EnTT::EnTT)
