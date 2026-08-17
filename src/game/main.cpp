@@ -44,23 +44,22 @@ namespace game {
             return static_cast<float>(std::atan2(static_cast<double>(mousePositionRelative.y), static_cast<double>(mousePositionRelative.x))) * static_cast<float>(180 / M_PI);
         }
 
-        void player_input_update_speedvector(SpeedVector &speedVector, SpeedVectorMutex &speedVectorMutex, const Acceleration &acceleration) {
-
+        void player_input_update_speedvector(const GameData &gameData, SpeedVector &speedVector, SpeedVectorMutex &speedVectorMutex, const Acceleration &acceleration) {
 
             bool invalidInput = true;
             EVector2 calculatedVector = {0, 0};
             if(IsKeyDown(KEY_W)) {
-                calculatedVector.y -= 1;
+                calculatedVector.y -= 1.0f;
                 invalidInput = false;
             } else if(IsKeyDown(KEY_S)) {
-                calculatedVector.y += 1;
+                calculatedVector.y += 1.0f;
                 invalidInput = false;
             }
             if(IsKeyDown(KEY_D)) {
-                calculatedVector.x += 1;
+                calculatedVector.x += 1.0f;
                 invalidInput = false;
             } else if(IsKeyDown(KEY_A)) {
-                calculatedVector.x -= 1;
+                calculatedVector.x -= 1.0f;
                 invalidInput = false;
             }
 
@@ -72,7 +71,7 @@ namespace game {
                 playerDeltaSpeedChangeVector = {cos(angle) * acceleration.value(), sin(angle) * acceleration.value()};
 
             std::unique_lock<SpeedVectorMutex> speedVectorLock(speedVectorMutex);
-            speedVector += playerDeltaSpeedChangeVector;
+            speedVector += playerDeltaSpeedChangeVector * gameData.frameTime;
         }
 
         void player_input_update(GameData &gameData, [[maybe_unused]] DebugConfiguration &debugConfiguration, Position &position, PositionMutex &positionMutex, SpeedVector &speedVector, SpeedVectorMutex &speedVectorMutex, Acceleration &acceleration, BodyRotation &bodyRotation, BodyRotationMutex &bodyRotationMutex) {
@@ -80,10 +79,11 @@ namespace game {
             bodyRotation = get_player_angle_to_mouse(gameData, position, positionMutex);
             bodyRotationLock.unlock();
 
-            player_input_update_speedvector(speedVector, speedVectorMutex, acceleration);
+            player_input_update_speedvector(gameData, speedVector, speedVectorMutex, acceleration);
         }
 
         void players_input_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
+            std::shared_lock registryLock(gameData.registryMutex);
             auto playerView = gameData.registry.view<PlayerMarker, Position, PositionMutex, SpeedVector, SpeedVectorMutex, BodyRotation, BodyRotationMutex, Acceleration>();
             for (const entt::entity &player : playerView) {
                 const auto &[bodyRotation, bodyRotationMutex, position, positionMutex, speedVector, speedVectorMutex, acceleration] = gameData.registry.get<BodyRotation, BodyRotationMutex, Position, PositionMutex, SpeedVector, SpeedVectorMutex, Acceleration>(player);
@@ -113,6 +113,9 @@ namespace game {
 
         void entry(GameData &gameData, DebugConfiguration &debugConfiguration) {
             while (!WindowShouldClose()) {
+                gameData.framesPerSecond = GetFPS();
+                gameData.frameTime = GetFrameTime();
+                game::loop::players_input_update(gameData, debugConfiguration);
                 game::loop::misc_update(debugConfiguration);
                 tick::tick_update(gameData, debugConfiguration);
                 draw::draw(gameData, debugConfiguration);
@@ -138,7 +141,7 @@ void initialize_player(GameData &gameData) {
     gameData.registry.emplace<BodySize>(playerEntity, gameData.map.tile_size(), gameData.map.tile_size());
     gameData.registry.emplace<BodyRotation>(playerEntity, 70);
     gameData.registry.emplace<BodyRotationMutex>(playerEntity);
-    gameData.registry.emplace<Acceleration>(playerEntity, 20);
+    gameData.registry.emplace<Acceleration>(playerEntity, 3000);
     gameData.registry.emplace<HitBoxRadius>(playerEntity, gameData.map.tile_size() / 2.5);
     gameData.registry.emplace<SpeedVector>(playerEntity, 0, 0);
     gameData.registry.emplace<SpeedVectorMutex>(playerEntity);
@@ -181,12 +184,13 @@ int main() {
     initialize_player(gameData);
     initialize_map(gameData);
     initialize_test_weapon(gameData);
-    gameData.tickedFunctions["players_input_update"] = TickedFunction(1, &game::loop::players_input_update);
-    PhysicsManagement physicsManagement(gameData, debugConfiguration, 560);
+    PhysicsManagement physicsManagement(gameData, debugConfiguration, 640);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
-    SetTargetFPS(640);
-    gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
+    SetWindowState(FLAG_WINDOW_RESIZABLE);
+    SetConfigFlags(FLAG_WINDOW_TRANSPARENT);
     SetWindowSize(1280, 720);
+    SetTargetFPS(180);
+    gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Entering game-loop");
     physicsManagement.start();
@@ -199,6 +203,6 @@ int main() {
     gameData.running = false;
     runningLock.unlock();
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
-        fmt::println("Unlaoded everything");
+        fmt::println("Unloaded everything");
     return 0;
 }

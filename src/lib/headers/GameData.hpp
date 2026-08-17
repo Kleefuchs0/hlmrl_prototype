@@ -22,10 +22,13 @@ struct GameData {
     double tickClock = 0.0;
     uint_fast64_t tick = 0;
     uint_fast16_t tickRate = 60;
+    int framesPerSecond = 0;
+    float frameTime = 0;
     Color screenTint = WHITE;
     MapMutex mapMutex;
     Map<DEFAULT_MAP_WIDTH, DEFAULT_MAP_HEIGHT, DEFAULT_TILE_SIZE> map;
     std::map<std::string, TickedFunction> tickedFunctions;
+    std::shared_mutex registryMutex;
     entt::registry registry;
     std::shared_mutex runningMutex;
     bool running = true;

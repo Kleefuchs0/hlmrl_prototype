@@ -12,6 +12,7 @@ void update::entity_movement_update(GameData &gameData, DebugConfiguration &debu
 }
 
 void update::entities_movement_update(GameData &gameData, DebugConfiguration &debugConfiguration, const float frameTime) {
+    std::shared_lock registryLock(gameData.registryMutex);
     auto entityView = gameData.registry.view<Position, PositionMutex, SpeedVector, SpeedVectorMutex, Acceleration, HitBoxRadius>();
     std::shared_lock<MapMutex> mapLock(gameData.mapMutex);
     for (const entt::entity &entity : entityView) {

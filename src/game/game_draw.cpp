@@ -70,6 +70,7 @@ void draw::draw_entity([[maybe_unused]]const GameData &gameData, const DebugConf
 }
 
 void draw::draw_entities(GameData &gameData, DebugConfiguration &debugConfiguration) {
+    std::shared_lock<std::shared_mutex> registryLock(gameData.registryMutex);
     entt::registry &registry = gameData.registry;
     auto entity_view = gameData.registry.view<Position, PositionMutex, BodySize, HitBoxRadius, BodyRotation, BodyRotationMutex>();
     for (const entt::entity &entity : entity_view) {

@@ -29,6 +29,7 @@ class PhysicsManagementSettings {
 };
 
 void players_cam_update(GameData &gameData, [[maybe_unused]] DebugConfiguration &debugConfiguration) {
+    std::shared_lock<std::shared_mutex> registryLock(gameData.registryMutex);
     auto playerView = gameData.registry.view<PlayerMarker, Position, PositionMutex>();
     for (const entt::entity &player : playerView) {
         const auto &[position, positionMutex] = gameData.registry.get<Position, PositionMutex>(player);
@@ -43,6 +44,7 @@ void pickup_update(BodyRotation &bodyRotation, BodyRotationMutex &bodyRotationMu
 }
 
 void pickups_update(GameData &gameData, [[maybe_unused]] DebugConfiguration &debugConfiguration, const float frameTimeHundreths) {
+    std::shared_lock<std::shared_mutex> registryLock(gameData.registryMutex);
     auto weaponView = gameData.registry.view<PickUpMarker, BodyRotation, BodyRotationMutex>();
     for (const entt::entity &weapon : weaponView) {
         const auto &[bodyRotation, bodyRotationMutex] = gameData.registry.get<BodyRotation, BodyRotationMutex>(weapon);

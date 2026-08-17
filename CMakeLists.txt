@@ -41,6 +41,7 @@ set(GLFW_BUILD_X11 OFF CACHE BOOL "" FORCE) # disable x11 on linux (switch these
 
 include_directories(src)
 include_directories(src/game)
+include_directories(src/game/headers)
 include_directories(src/lib/headers)
 
 option (HLMRL_ENABLE_TESTS "Build tests for hlmrl?" ON)
