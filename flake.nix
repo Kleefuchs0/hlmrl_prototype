@@ -39,6 +39,10 @@
             valgrind
             bear
             libxkbcommon
+            fmt
+            catch2_3
+            raygui
+            raylib
           ];
           env = {
 

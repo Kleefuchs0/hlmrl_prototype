@@ -46,13 +46,19 @@ include_directories(src/lib/headers)
 
 option (HLMRL_ENABLE_TESTS "Build tests for hlmrl?" ON)
 
+find_package(raylib CONFIG QUIET)
 
-FetchContent_Declare(raylib
-  GIT_REPOSITORY https://github.com/raysan5/raylib.git
-  GIT_TAG        master
-  GIT_PROGRESS   TRUE
-)
-FetchContent_MakeAvailable(raylib)
+if(NOT raylib_FOUND)
+    message(STATUS "raygui not found, fetching it...")
+
+    FetchContent_Declare(raylib
+        GIT_REPOSITORY https://github.com/raysan5/raylib.git
+        GIT_TAG        master
+        GIT_PROGRESS   TRUE
+    )
+    FetchContent_MakeAvailable(raylib)
+
+endif()
 
 add_library(raylib_system INTERFACE)
 
@@ -63,15 +69,24 @@ target_include_directories(raylib_system SYSTEM INTERFACE
 )
 
 
-FetchContent_Declare(raygui
-  GIT_REPOSITORY https://github.com/raysan5/raygui
-  GIT_TAG        master
-  GIT_PROGRESS   TRUE
-)
-FetchContent_GetProperties(raygui)
-if(NOT raygui_POPULATED)
-    FetchContent_MakeAvailable(raygui)
+find_package(raygui CONFIG QUIET)
+
+if(NOT raygui_FOUND)
+    message(STATUS "raygui not found, fetching it...")
+
+    FetchContent_Declare(raygui
+        GIT_REPOSITORY https://github.com/raysan5/raygui
+        GIT_TAG        master
+        GIT_PROGRESS   TRUE
+    )
+
+    FetchContent_GetProperties(raygui)
+    if(NOT raygui_POPULATED)
+        FetchContent_MakeAvailable(raygui)
+    endif()
+
 endif()
+
 
 
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
@@ -92,11 +107,18 @@ target_include_directories(entt_system SYSTEM INTERFACE
     ${entt_SOURCE_DIR}/src
 )
 
-FetchContent_Declare(
-  fmt
-  GIT_REPOSITORY https://github.com/fmtlib/fmt
-  GIT_TAG        e69e5f977d458f2650bb346dadf2ad30c5320281) # 10.2.1
-FetchContent_MakeAvailable(fmt)
+find_package(fmt CONFIG QUIET)
+
+if(NOT fmt_FOUND)
+    message(STATUS "fmt not found, fetching it...")
+
+    FetchContent_Declare(
+        fmt
+        GIT_REPOSITORY https://github.com/fmtlib/fmt
+        GIT_TAG        e69e5f977d458f2650bb346dadf2ad30c5320281) # 10.2.1
+    FetchContent_MakeAvailable(fmt)
+
+endif()
 
 file(GLOB LIB_SOURCE_FILES src/lib/*.cpp)
 
@@ -118,15 +140,18 @@ target_include_directories(hlmrl_lib SYSTEM PRIVATE
 
 
 if (HLMRL_ENABLE_TESTS)
-    include(FetchContent)
 
-    FetchContent_Declare(
-        Catch2
-        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG v3.15.2 # or a later release
-    )
+    find_package(Catch2 3 CONFIG QUIET)
 
-    FetchContent_MakeAvailable(Catch2)
+    if (NOT Catch2_FOUND)
+        FetchContent_Declare(
+            Catch2
+            GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+            GIT_TAG v3.15.2 # or a later release
+        )
+
+        FetchContent_MakeAvailable(Catch2)
+    endif()
 
     file(GLOB_RECURSE TEST_SOURCE_FILES tests/*.cpp)
     enable_testing ()
@@ -139,7 +164,7 @@ if (HLMRL_ENABLE_TESTS)
         PRIVATE fmt::fmt
         PRIVATE Catch2::Catch2WithMain
     )
-    add_test (NAME hlmrl_test COMMAND quartix_test)
+    add_test (NAME hlmrl_test COMMAND hlmrl_test)
     set_property(TARGET hlmrl_test PROPERTY CXX_STANDARD 23)
     enable_target_warnings(hlmrl_test)
 endif()
