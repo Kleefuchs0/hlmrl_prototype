@@ -20,7 +20,7 @@
 #include "fmt/core.h"
 #include "game/tick.hpp"
 #include "lib/TickedFunction.hpp"
-#include "game/draw.hpp"
+#include "game/rendering.hpp"
 #include "lib/tile_type.hpp"
 #include <cmath>
 #include <cstddef>
@@ -31,7 +31,7 @@
 
 namespace game {
 
-    namespace loop {
+    namespace input {
 
 
         float get_player_angle_to_mouse(const GameData &gameData, const Position &playerPosition, PositionMutex &positionMutex) {
@@ -107,16 +107,16 @@ namespace game {
             }
 
         }
+    }
 
-        void entry(GameData &gameData, DebugConfiguration &debugConfiguration) {
-            while (!WindowShouldClose()) {
-                gameData.framesPerSecond = GetFPS();
-                gameData.frameTime = GetFrameTime();
-                game::loop::players_input_update(gameData, debugConfiguration);
-                game::loop::misc_update(debugConfiguration);
-                tick::tick_update(gameData, debugConfiguration);
-                draw::draw(gameData, debugConfiguration);
-            }
+    void entry(GameData &gameData, DebugConfiguration &debugConfiguration) {
+        while (!WindowShouldClose()) {
+            gameData.framesPerSecond = GetFPS();
+            gameData.frameTime = GetFrameTime();
+            game::input::players_input_update(gameData, debugConfiguration);
+            game::input::misc_update(debugConfiguration);
+            tick::tick_update(gameData, debugConfiguration);
+            rendering::draw(gameData, debugConfiguration);
         }
     }
 }
@@ -191,7 +191,7 @@ int main() {
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Entering game-loop");
     physicsManagement.start();
-    game::loop::entry(gameData, debugConfiguration);
+    game::entry(gameData, debugConfiguration);
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Closing and unloading game");
     UnloadRenderTexture(gameData.renderTexture);

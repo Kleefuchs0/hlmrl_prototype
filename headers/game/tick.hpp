@@ -3,15 +3,11 @@
 
 namespace game {
 
-    namespace loop {
+    namespace tick {
 
-        namespace tick {
+        void ticked_function_update(GameData &gameData, DebugConfiguration &debugConfiguration);
 
-            void ticked_function_update(GameData &gameData, DebugConfiguration &debugConfiguration);
-
-            void tick_update(GameData &gameData, DebugConfiguration &debugConfiguration);
-
-        }
+        void tick_update(GameData &gameData, DebugConfiguration &debugConfiguration);
 
     }
 

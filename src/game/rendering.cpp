@@ -1,4 +1,4 @@
-#include "game/draw.hpp"
+#include "game/rendering.hpp"
 #include "lib/BodyRotation.hpp"
 #include "lib/BodyRotationMutex.hpp"
 #include "lib/DebugConfiguration.hpp"
@@ -13,10 +13,10 @@
 #include <stddef.h>
 #include <utility>
 
-using namespace game::loop;
+using namespace game;
 
 template<size_t MAP_WIDTH, size_t MAP_HEIGHT, float TILE_SIZE>
-void draw::draw_map(Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, GameData &gameData) {
+void rendering::singular::draw_map(Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, GameData &gameData) {
 
     std::pair<Position, Position> worldScreenWindowRange;
     std::shared_lock worldSizeLock(gameData.worldSizeMutex);
@@ -58,7 +58,7 @@ void draw::draw_map(Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, GameData &gameDa
     }
 }
 
-void draw::draw_entity([[maybe_unused]]const GameData &gameData, const DebugConfiguration &debugConfiguration, const Position &position, PositionMutex &positionMutex, const BodySize &bodySize, const BodyRotation &bodyRotation, BodyRotationMutex &bodyRotationMutex, const HitBoxRadius &hitBoxRadius) {
+void rendering::singular::draw_entity([[maybe_unused]]const GameData &gameData, const DebugConfiguration &debugConfiguration, const Position &position, PositionMutex &positionMutex, const BodySize &bodySize, const BodyRotation &bodyRotation, BodyRotationMutex &bodyRotationMutex, const HitBoxRadius &hitBoxRadius) {
     std::shared_lock positionLock(positionMutex);
     std::shared_lock bodyRotationLock(bodyRotationMutex);
     DrawRectanglePro({position.x, position.y, bodySize.x, bodySize.y}, {bodySize.x / 2, bodySize.y / 2}, bodyRotation.value(), WHITE);
@@ -67,25 +67,25 @@ void draw::draw_entity([[maybe_unused]]const GameData &gameData, const DebugConf
         DrawCircleV(position, hitBoxRadius.value(), debugConfiguration.hitBoxColor);
 }
 
-void draw::draw_entities(GameData &gameData, DebugConfiguration &debugConfiguration) {
+void rendering::internal::draw_entities(GameData &gameData, DebugConfiguration &debugConfiguration) {
     std::shared_lock registryLock(gameData.registryMutex);
     entt::registry &registry = gameData.registry;
     auto entity_view = gameData.registry.view<Position, PositionMutex, BodySize, HitBoxRadius, BodyRotation, BodyRotationMutex>();
     for (const entt::entity &entity : entity_view) {
         const auto &[position, positionMutex, bodySize, bodyRotation, bodyRotationMutex, hitBoxRadius] = registry.get<Position, PositionMutex, BodySize, BodyRotation, BodyRotationMutex, HitBoxRadius>(entity);
-        draw_entity(gameData, debugConfiguration, position, positionMutex, bodySize, bodyRotation, bodyRotationMutex, hitBoxRadius);
+        singular::draw_entity(gameData, debugConfiguration, position, positionMutex, bodySize, bodyRotation, bodyRotationMutex, hitBoxRadius);
     }
 }
 
-void draw::draw(GameData &gameData, DebugConfiguration &debugConfiguration) {
+void rendering::draw(GameData &gameData, DebugConfiguration &debugConfiguration) {
     BeginDrawing();
     ClearBackground(BLACK);
     BeginTextureMode(gameData.renderTexture);
     std::shared_lock camLock(gameData.camMutex);
     BeginMode2D(gameData.cam);
     ClearBackground(gameData.backgroundColor);
-    draw_map(gameData.map, gameData);
-    draw_entities(gameData, debugConfiguration);
+    singular::draw_map(gameData.map, gameData);
+    internal::draw_entities(gameData, debugConfiguration);
     EndMode2D();
     if (debugConfiguration.drawFPS)
         DrawFPS(10, 10);

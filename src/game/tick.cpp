@@ -1,7 +1,7 @@
 #include "game/tick.hpp"
 #include "lib/DebugConfiguration.hpp"
 
-using namespace game::loop;
+using namespace game;
 
 
 void tick::tick_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
