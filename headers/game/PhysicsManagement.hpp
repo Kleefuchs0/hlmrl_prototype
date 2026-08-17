@@ -4,6 +4,7 @@
 #include "game/player_cam_update.hpp"
 #include "lib/DebugConfiguration.hpp"
 #include "lib/GameData.hpp"
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <thread>
@@ -12,41 +13,60 @@
 
 class PhysicsManagementSettings {
     public:
-        std::shared_mutex tickRateMutex;
+        std::shared_mutex settingsMutex;
         uint32_t tickRate = 320;
+        double maxAccumulatorAddition = 0.25;
         PhysicsManagementSettings(uint32_t tickRate) : tickRate(tickRate) {
+            maxAccumulatorAddition = static_cast<double>(tickRate) / 10;
         }
 };
 
 void update(GameData *gameData, DebugConfiguration *debugConfiguration, PhysicsManagementSettings *settings) {
-    std::shared_lock runningLock(gameData->runningMutex);
     auto previous = std::chrono::steady_clock::now();
 
-    double tickClock = 0;
-    while (gameData->running) {
-        auto now = std::chrono::steady_clock::now();
+    double accumulator = 0.0;
 
-        double frameTime = std::chrono::duration<double>(now - previous).count();
+    while (true) {
+        {
+            std::shared_lock runningLock(gameData->runningMutex);
+            if (gameData->running == false)
+                break;
+        }
+
+        const auto now = std::chrono::steady_clock::now();
+
+        const double frameTime = std::chrono::duration<double>(now - previous).count();
 
         previous = now;
 
-        runningLock.unlock();
 
-        tickClock += frameTime;
-        std::shared_lock tickRateLock(settings->tickRateMutex);
-        double tickTime = 1.0 / settings->tickRate;
-        tickRateLock.unlock();
-        std::this_thread::sleep_for(std::chrono::duration<double>(tickTime - tickClock / 1.2));
-
-        while(tickClock >= tickTime) {
-            game::physics::update_pickups(*gameData, *debugConfiguration, tickTime);
-            game::physics::update_entities_friction(*gameData, *debugConfiguration, tickTime);
-            game::physics::movement::update_entities_movement(*gameData, *debugConfiguration, tickTime);
-            game::physics::update_players_cam(*gameData, *debugConfiguration);
-            tickClock -= tickTime;
+        double tickTimeTarget;
+        double maxAccumulatorAddition;
+        {
+            std::shared_lock settingsLock(settings->settingsMutex);
+            tickTimeTarget = 1.0 / settings->tickRate;
+            maxAccumulatorAddition = settings->maxAccumulatorAddition;
         }
 
-        runningLock.lock();
+        accumulator += std::min(frameTime, maxAccumulatorAddition);
+
+
+        while(accumulator >= tickTimeTarget) {
+            game::physics::update_pickups(*gameData, *debugConfiguration, tickTimeTarget);
+            game::physics::update_entities_friction(*gameData, *debugConfiguration, tickTimeTarget);
+            game::physics::movement::update_entities_movement(*gameData, *debugConfiguration, tickTimeTarget);
+            game::physics::update_players_cam(*gameData, *debugConfiguration);
+            accumulator -= tickTimeTarget;
+        }
+
+        const double remaining = tickTimeTarget - accumulator;
+
+        if (remaining > 0.0)
+        {
+            std::this_thread::sleep_for(
+                std::chrono::duration<double>(remaining));
+        }
+
     }
 };
 
@@ -55,13 +75,14 @@ class PhysicsManagement {
         GameData &gameData;
         DebugConfiguration &debugConfiguration;
         PhysicsManagementSettings settings;
+        std::jthread phusicsTread;
     public:
         PhysicsManagement(GameData &gameData, DebugConfiguration &debugConfiguration, const uint32_t tickRate) : gameData(gameData), debugConfiguration(debugConfiguration), settings(tickRate)  {
         }
 
         void start() {
-            std::jthread thread(update, &gameData, &debugConfiguration, &this->settings);
-            thread.detach();
+            phusicsTread = std::jthread(update, &gameData, &debugConfiguration, &this->settings);
+            phusicsTread.detach();
         }
 };
 
