@@ -144,9 +144,9 @@ if (HLMRL_ENABLE_TESTS)
     enable_target_warnings(hlmrl_test)
 endif()
 
-file(GLOB MAP_CREATOR_SOURCE_FILES src/game/*.cpp)
+file(GLOB GAME_SOURCE_FILES src/game/*.cpp)
 
-add_executable(hlmrl ${MAP_CREATOR_SOURCE_FILES})
+add_executable(hlmrl ${GAME_SOURCE_FILES})
 set_property(TARGET hlmrl PROPERTY CXX_STANDARD 23)
 
 enable_target_warnings(hlmrl)
