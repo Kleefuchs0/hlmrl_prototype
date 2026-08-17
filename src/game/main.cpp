@@ -38,7 +38,7 @@ namespace game {
 
 
         float get_player_angle_to_mouse(const GameData &gameData, const Position &playerPosition, PositionMutex &positionMutex) {
-            std::shared_lock<PositionMutex> positionLock(positionMutex);
+            std::shared_lock positionLock(positionMutex);
             Position mousePositionRelative = GetScreenToWorld2D(GetMousePosition() / (static_cast<float>(GetScreenWidth()) / static_cast<float>(gameData.worldWidth)), gameData.cam) - playerPosition;
             positionLock.unlock();
             return static_cast<float>(std::atan2(static_cast<double>(mousePositionRelative.y), static_cast<double>(mousePositionRelative.x))) * static_cast<float>(180 / M_PI);
@@ -70,12 +70,12 @@ namespace game {
             else
                 playerDeltaSpeedChangeVector = {cos(angle) * acceleration.value(), sin(angle) * acceleration.value()};
 
-            std::unique_lock<SpeedVectorMutex> speedVectorLock(speedVectorMutex);
+            std::unique_lock speedVectorLock(speedVectorMutex);
             speedVector += playerDeltaSpeedChangeVector * gameData.frameTime;
         }
 
         void player_input_update(GameData &gameData, [[maybe_unused]] DebugConfiguration &debugConfiguration, Position &position, PositionMutex &positionMutex, SpeedVector &speedVector, SpeedVectorMutex &speedVectorMutex, Acceleration &acceleration, BodyRotation &bodyRotation, BodyRotationMutex &bodyRotationMutex) {
-            std::unique_lock<BodyRotationMutex> bodyRotationLock(bodyRotationMutex);
+            std::unique_lock bodyRotationLock(bodyRotationMutex);
             bodyRotation = get_player_angle_to_mouse(gameData, position, positionMutex);
             bodyRotationLock.unlock();
 
@@ -199,7 +199,7 @@ int main() {
         fmt::println("Closing and unloading game");
     UnloadRenderTexture(gameData.renderTexture);
     CloseWindow();
-    std::unique_lock<std::shared_mutex> runningLock(gameData.runningMutex);
+    std::unique_lock runningLock(gameData.runningMutex);
     gameData.running = false;
     runningLock.unlock();
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)

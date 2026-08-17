@@ -19,12 +19,10 @@ template<size_t MAP_WIDTH, size_t MAP_HEIGHT, float TILE_SIZE>
 void draw::draw_map(Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, GameData &gameData) {
 
     std::pair<Position, Position> worldScreenWindowRange;
-    std::shared_lock<std::shared_mutex> worldSizeLock(gameData.worldSizeMutex);
-    std::shared_lock<Camera2DMutex> camLock(gameData.camMutex);
+    std::shared_lock worldSizeLock(gameData.worldSizeMutex);
     worldScreenWindowRange.first = GetScreenToWorld2D({0, 0}, gameData.cam);
     worldScreenWindowRange.second = GetScreenToWorld2D({static_cast<float>(gameData.worldWidth), static_cast<float>(gameData.worldHeight)}, gameData.cam);
     worldSizeLock.unlock();
-    camLock.unlock();
 
     std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> tileRanges;
     tileRanges.first = {worldScreenWindowRange.first.x / TILE_SIZE, worldScreenWindowRange.first.y / TILE_SIZE};
@@ -40,7 +38,7 @@ void draw::draw_map(Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, GameData &gameDa
     //     tileRanges.second.second = 1;
 
     
-    std::shared_lock<MapMutex> mapLock(gameData.mapMutex);
+    std::shared_lock mapLock(gameData.mapMutex);
     for (size_t y : std::views::iota(tileRanges.first.second, tileRanges.second.second)) {
         for (size_t x : std::views::iota(tileRanges.first.first, tileRanges.second.first)) {
             TileType tileType = map.get_tile_type(x, y);
@@ -61,8 +59,8 @@ void draw::draw_map(Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, GameData &gameDa
 }
 
 void draw::draw_entity([[maybe_unused]]const GameData &gameData, const DebugConfiguration &debugConfiguration, const Position &position, PositionMutex &positionMutex, const BodySize &bodySize, const BodyRotation &bodyRotation, BodyRotationMutex &bodyRotationMutex, const HitBoxRadius &hitBoxRadius) {
-    std::shared_lock<PositionMutex> positionLock(positionMutex);
-    std::shared_lock<BodyRotationMutex> bodyRotationLock(bodyRotationMutex);
+    std::shared_lock positionLock(positionMutex);
+    std::shared_lock bodyRotationLock(bodyRotationMutex);
     DrawRectanglePro({position.x, position.y, bodySize.x, bodySize.y}, {bodySize.x / 2, bodySize.y / 2}, bodyRotation.value(), WHITE);
     bodyRotationLock.unlock();
     if (debugConfiguration.drawHitBoxes)
@@ -70,7 +68,7 @@ void draw::draw_entity([[maybe_unused]]const GameData &gameData, const DebugConf
 }
 
 void draw::draw_entities(GameData &gameData, DebugConfiguration &debugConfiguration) {
-    std::shared_lock<std::shared_mutex> registryLock(gameData.registryMutex);
+    std::shared_lock registryLock(gameData.registryMutex);
     entt::registry &registry = gameData.registry;
     auto entity_view = gameData.registry.view<Position, PositionMutex, BodySize, HitBoxRadius, BodyRotation, BodyRotationMutex>();
     for (const entt::entity &entity : entity_view) {
@@ -83,6 +81,7 @@ void draw::draw(GameData &gameData, DebugConfiguration &debugConfiguration) {
     BeginDrawing();
     ClearBackground(BLACK);
     BeginTextureMode(gameData.renderTexture);
+    std::shared_lock camLock(gameData.camMutex);
     BeginMode2D(gameData.cam);
     ClearBackground(gameData.backgroundColor);
     draw_map(gameData.map, gameData);

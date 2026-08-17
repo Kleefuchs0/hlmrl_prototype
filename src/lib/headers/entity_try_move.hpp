@@ -31,7 +31,7 @@ enum entity_move_return_code {
 template <size_t MAP_WIDTH, size_t MAP_HEIGHT, float TILE_SIZE>
 entity_move_return_code try_move_entity(Position &position, PositionMutex &positionMutex, HitBoxRadius &hitBoxRadius, Map<MAP_WIDTH, MAP_HEIGHT, TILE_SIZE> &map, SpeedVector change, DebugConfiguration &debugConfiguration) {
     entity_move_return_code retval = entity_move_return_code::BOTH_MOVED;
-    std::unique_lock<PositionMutex> positionLock(positionMutex);
+    std::unique_lock positionLock(positionMutex);
     Position oldPlayerPos = position;
     position.x += change.x;
     {
@@ -72,7 +72,7 @@ entity_move_return_code try_move_entity_with_deltaSpeed_change_on_collision(Posi
         case entity_move_return_code::BOTH_MOVED:
             return retval;
     }
-    std::unique_lock<SpeedVectorMutex> speedVectorLock(speedVectorMutex);
+    std::unique_lock speedVectorLock(speedVectorMutex);
     speedVector += speedVectorChange * frameTime;
 
     return retval;
