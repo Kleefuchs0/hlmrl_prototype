@@ -184,7 +184,7 @@ int main() {
     gameData.tickedFunctions["players_input_update"] = TickedFunction(1, &game::loop::players_input_update);
     PhysicsManagement physicsManagement(gameData, debugConfiguration, 560);
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
-    SetTargetFPS(180);
+    SetTargetFPS(640);
     gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
     SetWindowSize(1280, 720);
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
