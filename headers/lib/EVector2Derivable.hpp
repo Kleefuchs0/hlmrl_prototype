@@ -1,7 +1,7 @@
 #pragma once
 
-#include "raylib.h"
 #include <cmath>
+#include <raylib.h>
 
 template <typename Derived>
 
@@ -81,6 +81,19 @@ class EVector2Derivable : public Vector2 {
      }
      constexpr inline float crossProduct(const Vector2 &rhs) const {
          return this->x * rhs.y - this->y * rhs.x;
+     }
+     constexpr inline Derived normalized() const {
+         Derived result;
+         float length = std::sqrtf((this->x*this->x) + (this->y*this->y));
+
+         if (length > 0)
+         {
+             float iLength = 1.0f/length;
+             result.x = this->x*iLength;
+             result.y = this->y*iLength;
+         }
+
+         return result;
      }
 };
 

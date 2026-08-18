@@ -25,25 +25,26 @@ namespace game {
                         break;
                 }
 
+
+                double tickTimeTarget;
+                double maxAccumulatorAddition;
+                {
+                    std::shared_lock settingsLock(settings->settingsMutex);
+
+                    tickTimeTarget = 1.0 / settings->tickRate;
+                    maxAccumulatorAddition = settings->maxAccumulatorAddition;
+                }
+
                 const auto now = std::chrono::steady_clock::now();
 
                 const double frameTime = std::chrono::duration<double>(now - previous).count();
 
                 previous = now;
 
-
-                double tickTimeTarget;
-                double maxAccumulatorAddition;
-                {
-                    std::shared_lock settingsLock(settings->settingsMutex);
-                    tickTimeTarget = 1.0 / settings->tickRate;
-                    maxAccumulatorAddition = settings->maxAccumulatorAddition;
-                }
-
                 accumulator += std::min(frameTime, maxAccumulatorAddition);
 
 
-                while(accumulator >= tickTimeTarget) {
+                if(accumulator >= tickTimeTarget) {
                     {
                         std::shared_lock newestInputDataLock(*newestInputDataMutex);
                         if (*newestInputDataRenewed == true) {
@@ -52,24 +53,16 @@ namespace game {
                         }
                     }
 
-                    game::input::process(*gameData, *debugConfiguration, inputData, tickTimeTarget);
-                    game::physics::update_pickups(*gameData, *debugConfiguration, tickTimeTarget);
-                    game::physics::update_entities_friction(*gameData, *debugConfiguration, tickTimeTarget);
-                    game::physics::movement::update_entities_movement(*gameData, *debugConfiguration, tickTimeTarget);
+                    game::input::process(*gameData, *debugConfiguration, inputData, accumulator);
+                    game::physics::update_pickups(*gameData, *debugConfiguration, accumulator);
+                    game::physics::update_entities_friction(*gameData, *debugConfiguration, accumulator);
+                    game::physics::movement::update_entities_movement(*gameData, *debugConfiguration, accumulator);
                     {
                         std::unique_lock newestRenderDataLock(*newestRenderDataMutex);
                         *newestRenderData = game::rendering::internal::process_game_data_to_render_data(*gameData, *debugConfiguration);
                         *newestRenderDataRenewed = true;
                     }
                     accumulator -= tickTimeTarget;
-                }
-
-                const double remaining = tickTimeTarget - accumulator;
-
-                if (remaining > 0.0)
-                {
-                    std::this_thread::sleep_for(
-                            std::chrono::duration<double>(remaining));
                 }
 
             }

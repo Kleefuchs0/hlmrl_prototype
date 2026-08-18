@@ -11,7 +11,7 @@ namespace game {
         namespace internal {
             namespace singular {
                 void apply_to_player(SpeedVector &speedVector, const Acceleration &acceleration, const EVector2 &change, const float deltaTime) {
-                    speedVector += change * acceleration.value() * deltaTime;
+                    speedVector += change.normalized() * acceleration.value() * deltaTime;
                 }
             }
             void apply_to_players(GameData &gameData, const InputData &inputData, const float deltaTime) {
