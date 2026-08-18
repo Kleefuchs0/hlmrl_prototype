@@ -148,6 +148,7 @@ int main() {
     bool newestRenderDataRenewed = false;
     RenderData newestRenderData;
     game::PhysicsManagement physicsManagement(gameData, debugConfiguration, newestRenderData, newestRenderDataRenewed, newestRenderDataMutex, 640);
+    SetTargetFPS(0);
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetWindowSize(1280, 720);
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)

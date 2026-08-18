@@ -1,16 +1,10 @@
 #pragma once
 
 #include "game/RenderData.hpp"
-#include "game/pickups_update.hpp"
 #include "lib/DebugConfiguration.hpp"
 #include "lib/GameData.hpp"
-#include <algorithm>
-#include <chrono>
 #include <cstdint>
-#include <mutex>
 #include <thread>
-#include "entity_movement_update.hpp"
-#include "entity_fricition_update.hpp"
 
 namespace game {
 
@@ -24,70 +18,7 @@ namespace game {
             }
     };
 
-    void update(GameData *gameData, DebugConfiguration *debugConfiguration, RenderData *newestRenderData, bool *newestRenderDataRenewed, std::shared_mutex *newestRenderDataMutex, PhysicsManagementSettings *settings) {
-        auto previous = std::chrono::steady_clock::now();
-
-        double accumulator = 0.0;
-
-        while (true) {
-            {
-                std::shared_lock runningLock(gameData->runningMutex);
-                if (gameData->running == false)
-                    break;
-            }
-
-            const auto now = std::chrono::steady_clock::now();
-
-            const double frameTime = std::chrono::duration<double>(now - previous).count();
-
-            previous = now;
-
-
-            double tickTimeTarget;
-            double maxAccumulatorAddition;
-            {
-                std::shared_lock settingsLock(settings->settingsMutex);
-                tickTimeTarget = 1.0 / settings->tickRate;
-                maxAccumulatorAddition = settings->maxAccumulatorAddition;
-            }
-
-            accumulator += std::min(frameTime, maxAccumulatorAddition);
-
-
-            while(accumulator >= tickTimeTarget) {
-                game::physics::update_pickups(*gameData, *debugConfiguration, tickTimeTarget);
-                game::physics::update_entities_friction(*gameData, *debugConfiguration, tickTimeTarget);
-                game::physics::movement::update_entities_movement(*gameData, *debugConfiguration, tickTimeTarget);
-                {
-                    std::unique_lock newestRenderDataLock(*newestRenderDataMutex);
-                    *newestRenderData = {};
-                    {
-                        std::shared_lock worldSizeLock (gameData->worldSizeMutex);
-                        newestRenderData->worldWidth = gameData->worldWidth;
-                        newestRenderData->worldHeight = gameData->worldHeight;
-                    }
-                    newestRenderData->cam.target = {50, 50};
-                    newestRenderData->cam.offset = {0, 0};
-                    newestRenderData->cam.zoom = 1;
-                    newestRenderData->cam.rotation = 0;
-                    newestRenderData->screenTint = WHITE;
-                    newestRenderData->backgroundColor = BLUE;
-                    newestRenderData->layers.push_back({{{{0, 0, 20, 20}, WHITE, {50, 50}, {200, 200}, 45}}});
-                    *newestRenderDataRenewed = true;
-                }
-                accumulator -= tickTimeTarget;
-            }
-
-            const double remaining = tickTimeTarget - accumulator;
-
-            if (remaining > 0.0)
-            {
-                std::this_thread::sleep_for(
-                        std::chrono::duration<double>(remaining));
-            }
-
-        }
-    };
+    void update(GameData *gameData, DebugConfiguration *debugConfiguration, RenderData *newestRenderData, bool *newestRenderDataRenewed, std::shared_mutex *newestRenderDataMutex, PhysicsManagementSettings *settings);
 
     class PhysicsManagement {
         private:
@@ -97,15 +28,12 @@ namespace game {
             RenderData &newestRenderData;
             bool &newestRenderDataRenewed;
             std::shared_mutex &newestRenderDataMutex;
-            std::jthread phusicsTread;
+            std::jthread physicThread;
         public:
             PhysicsManagement(GameData &gameData, DebugConfiguration &debugConfiguration, RenderData &newestRenderData, bool &newestRenderDataRenewed, std::shared_mutex &newestRenderDataMutex, const uint32_t tickRate) : gameData(gameData), debugConfiguration(debugConfiguration), settings(tickRate), newestRenderData(newestRenderData), newestRenderDataRenewed(newestRenderDataRenewed), newestRenderDataMutex(newestRenderDataMutex) {
             }
 
-            void start() {
-                phusicsTread = std::jthread(update, &gameData, &debugConfiguration, &newestRenderData, &newestRenderDataRenewed, &newestRenderDataMutex, &this->settings);
-                phusicsTread.detach();
-            }
+            void start();
     };
 
 }
