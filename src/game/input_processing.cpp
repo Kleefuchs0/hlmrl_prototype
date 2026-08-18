@@ -25,6 +25,6 @@ namespace game {
     }
 }
 
-void input::process(GameData &gameData, const DebugConfiguration &DebugConfiguration, const InputData &inputData, const float deltaTime) {
+void input::process(GameData &gameData, [[maybe_unused]] const DebugConfiguration &DebugConfiguration, const InputData &inputData, const float deltaTime) {
     internal::apply_to_players(gameData, inputData, deltaTime);
 }

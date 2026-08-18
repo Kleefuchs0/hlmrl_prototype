@@ -57,12 +57,13 @@ namespace game {
         }
     }
 
-    void entry(InputData &inputData, std::shared_mutex &inputDataMutex, DebugConfiguration &debugConfiguration, ConstantRenderData &constantRenderData, RenderData &currentRenderData, RenderData &newestRenderData, bool &newestRenderDataRenewed, std::shared_mutex &newestRenderDataMutex) {
+    void entry(DebugConfiguration &debugConfiguration, InputData &nextInputData, bool &nextInputDataRenewed, std::shared_mutex &nextInputDataMutex, ConstantRenderData &constantRenderData, RenderData &currentRenderData, RenderData &newestRenderData, bool &newestRenderDataRenewed, std::shared_mutex &newestRenderDataMutex) {
         while (!WindowShouldClose()) {
             InputData newInputData = game::input::player_input_get(debugConfiguration);
             {
-                std::unique_lock inputDataLock(inputDataMutex);
-                inputData = std::move(newInputData);
+                std::unique_lock inputDataLock(nextInputDataMutex);
+                nextInputData = std::move(newInputData);
+                nextInputDataRenewed = true;
             }
             rendering::draw(constantRenderData, debugConfiguration, currentRenderData);
             
@@ -122,22 +123,23 @@ int main() {
     initialize_player(gameData);
     initialize_map(gameData);
     initialize_test_weapon(gameData);
-    std::shared_mutex inputDataMutex;
-    InputData inputData;
+    std::shared_mutex newestInputDataMutex;
+    InputData newestInputData;
+    bool newestInputDataRenewed;
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     ConstantRenderData constantRenderData(gameData.worldWidth, gameData.worldHeight);
     RenderData currentRenderData;
     std::shared_mutex newestRenderDataMutex;
     bool newestRenderDataRenewed = false;
     RenderData newestRenderData;
-    game::PhysicsManagement physicsManagement(gameData, debugConfiguration, newestRenderData, newestRenderDataRenewed, newestRenderDataMutex, 640);
+    game::PhysicsManagement physicsManagement(gameData, debugConfiguration, newestRenderData, newestRenderDataRenewed, newestRenderDataMutex, newestInputData, newestInputDataRenewed, newestInputDataMutex, 640);
     SetTargetFPS(0);
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetWindowSize(1280, 720);
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Entering game-loop");
     physicsManagement.start();
-    game::entry(inputData, inputDataMutex, debugConfiguration, constantRenderData, currentRenderData, newestRenderData, newestRenderDataRenewed, newestRenderDataMutex);
+    game::entry(debugConfiguration, newestInputData, newestInputDataRenewed, newestInputDataMutex, constantRenderData, currentRenderData, newestRenderData, newestRenderDataRenewed, newestRenderDataMutex);
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Closing and unloading game");
     CloseWindow();

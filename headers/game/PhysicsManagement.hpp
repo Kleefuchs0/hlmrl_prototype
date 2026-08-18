@@ -1,5 +1,6 @@
 #pragma once
 
+#include "game/InputData.hpp"
 #include "game/RenderData.hpp"
 #include "lib/DebugConfiguration.hpp"
 #include "lib/GameData.hpp"
@@ -18,8 +19,6 @@ namespace game {
             }
     };
 
-    void update(GameData *gameData, DebugConfiguration *debugConfiguration, RenderData *newestRenderData, bool *newestRenderDataRenewed, std::shared_mutex *newestRenderDataMutex, PhysicsManagementSettings *settings);
-
     class PhysicsManagement {
         private:
             GameData &gameData;
@@ -29,8 +28,11 @@ namespace game {
             bool &newestRenderDataRenewed;
             std::shared_mutex &newestRenderDataMutex;
             std::jthread physicThread;
+            InputData &newestInputData;
+            bool &newestInputDataRenewed;
+            std::shared_mutex &newestInputDataMutex;
         public:
-            PhysicsManagement(GameData &gameData, DebugConfiguration &debugConfiguration, RenderData &newestRenderData, bool &newestRenderDataRenewed, std::shared_mutex &newestRenderDataMutex, const uint32_t tickRate) : gameData(gameData), debugConfiguration(debugConfiguration), settings(tickRate), newestRenderData(newestRenderData), newestRenderDataRenewed(newestRenderDataRenewed), newestRenderDataMutex(newestRenderDataMutex) {
+            PhysicsManagement(GameData &gameData, DebugConfiguration &debugConfiguration, RenderData &newestRenderData, bool &newestRenderDataRenewed, std::shared_mutex &newestRenderDataMutex, InputData &newestInputData, bool &newestInputDataRenewed, std::shared_mutex &newestInputDataMutex, const uint32_t tickRate) : gameData(gameData), debugConfiguration(debugConfiguration), settings(tickRate), newestRenderData(newestRenderData), newestRenderDataRenewed(newestRenderDataRenewed), newestRenderDataMutex(newestRenderDataMutex), newestInputData(newestInputData), newestInputDataRenewed(newestInputDataRenewed), newestInputDataMutex(newestInputDataMutex) {
             }
 
             void start();
