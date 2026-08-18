@@ -1,3 +1,6 @@
+#include "game/ConstantRenderData.hpp"
+#include "game/InputData.hpp"
+#include "game/RenderData.hpp"
 #include "lib/Acceleration.hpp"
 #include "lib/BodyRotation.hpp"
 #include "lib/BodyRotationMutex.hpp"
@@ -18,11 +21,9 @@
 #include "lib/WeaponMarker.hpp"
 #include "lib/constants.hpp"
 #include "fmt/core.h"
-#include "game/tick.hpp"
 #include "lib/TickedFunction.hpp"
 #include "game/rendering.hpp"
 #include "lib/tile_type.hpp"
-#include <cmath>
 #include <cstddef>
 #include <mutex>
 #include <raylib.h>
@@ -34,89 +35,47 @@ namespace game {
     namespace input {
 
 
-        float get_player_angle_to_mouse(const GameData &gameData, const Position &playerPosition, PositionMutex &positionMutex) {
-            std::shared_lock positionLock(positionMutex);
-            Position mousePositionRelative = GetScreenToWorld2D(GetMousePosition() / (static_cast<float>(GetScreenWidth()) / static_cast<float>(gameData.worldWidth)), gameData.cam) - playerPosition;
-            positionLock.unlock();
-            return static_cast<float>(std::atan2(static_cast<double>(mousePositionRelative.y), static_cast<double>(mousePositionRelative.x))) * static_cast<float>(180 / M_PI);
-        }
+        EVector2 player_input_get_relative_movement() {
 
-        void player_input_update_speedvector(const GameData &gameData, SpeedVector &speedVector, SpeedVectorMutex &speedVectorMutex, const Acceleration &acceleration) {
-
-            bool invalidInput = true;
             EVector2 calculatedVector = {0, 0};
             if(IsKeyDown(KEY_W)) {
                 calculatedVector.y -= 1.0f;
-                invalidInput = false;
             } else if(IsKeyDown(KEY_S)) {
                 calculatedVector.y += 1.0f;
-                invalidInput = false;
             }
             if(IsKeyDown(KEY_D)) {
                 calculatedVector.x += 1.0f;
-                invalidInput = false;
             } else if(IsKeyDown(KEY_A)) {
                 calculatedVector.x -= 1.0f;
-                invalidInput = false;
             }
 
-            float angle = std::atan2(calculatedVector.y, calculatedVector.x);
-            SpeedVector playerDeltaSpeedChangeVector;
-            if (invalidInput)
-                playerDeltaSpeedChangeVector = {0, 0};
-            else
-                playerDeltaSpeedChangeVector = {cos(angle) * acceleration.value(), sin(angle) * acceleration.value()};
-
-            std::unique_lock speedVectorLock(speedVectorMutex);
-            speedVector += playerDeltaSpeedChangeVector * gameData.frameTime;
+            return calculatedVector;
         }
 
-        void player_input_update(GameData &gameData, [[maybe_unused]] DebugConfiguration &debugConfiguration, Position &position, PositionMutex &positionMutex, SpeedVector &speedVector, SpeedVectorMutex &speedVectorMutex, Acceleration &acceleration, BodyRotation &bodyRotation, BodyRotationMutex &bodyRotationMutex) {
-            std::unique_lock bodyRotationLock(bodyRotationMutex);
-            bodyRotation = get_player_angle_to_mouse(gameData, position, positionMutex);
-            bodyRotationLock.unlock();
-
-            player_input_update_speedvector(gameData, speedVector, speedVectorMutex, acceleration);
-        }
-
-        void players_input_update(GameData &gameData, DebugConfiguration &debugConfiguration) {
-            std::shared_lock registryLock(gameData.registryMutex);
-            auto playerView = gameData.registry.view<PlayerMarker, Position, PositionMutex, SpeedVector, SpeedVectorMutex, BodyRotation, BodyRotationMutex, Acceleration>();
-            for (const entt::entity &player : playerView) {
-                const auto &[bodyRotation, bodyRotationMutex, position, positionMutex, speedVector, speedVectorMutex, acceleration] = gameData.registry.get<BodyRotation, BodyRotationMutex, Position, PositionMutex, SpeedVector, SpeedVectorMutex, Acceleration>(player);
-                player_input_update(gameData, debugConfiguration, position, positionMutex, speedVector, speedVectorMutex, acceleration, bodyRotation, bodyRotationMutex);
-            }
-        }
-
-        void misc_update(DebugConfiguration &debugConfiguration) {
-            if(IsKeyPressed(KEY_F11))
-                ToggleFullscreen();
-            if (IsKeyPressed(KEY_F3))
-                debugConfiguration.drawFPS = !debugConfiguration.drawFPS;
-            if (IsKeyPressed(KEY_F10)) {
-                if (IsKeyDown(KEY_LEFT_SHIFT) && debugConfiguration.drawHitBoxes) {
-                    debugConfiguration.currentHitBoxColor++;
-
-                    if (debugConfiguration.currentHitBoxColor >= debugConfiguration.avaivableHitBoxColors.size()) 
-                        debugConfiguration.currentHitBoxColor = 0;
-
-                    debugConfiguration.hitBoxColor = debugConfiguration.avaivableHitBoxColors[debugConfiguration.currentHitBoxColor];
-                } else {
-                    debugConfiguration.drawHitBoxes = !debugConfiguration.drawHitBoxes;
-                }
-            }
-
+        InputData player_input_get([[maybe_unused]] DebugConfiguration &debugConfiguration) {
+            InputData data;
+            data.cursorPosition = GetMousePosition();
+            data.relativeMovement = player_input_get_relative_movement();
+            return data;
         }
     }
 
-    void entry(GameData &gameData, DebugConfiguration &debugConfiguration) {
+    void entry(InputData &inputData, std::shared_mutex &inputDataMutex, DebugConfiguration &debugConfiguration, ConstantRenderData &constantRenderData, RenderData &currentRenderData, RenderData &newestRenderData, bool &newestRenderDataRenewed, std::shared_mutex &newestRenderDataMutex) {
         while (!WindowShouldClose()) {
-            gameData.framesPerSecond = GetFPS();
-            gameData.frameTime = GetFrameTime();
-            game::input::players_input_update(gameData, debugConfiguration);
-            game::input::misc_update(debugConfiguration);
-            tick::tick_update(gameData, debugConfiguration);
-            rendering::draw(gameData, debugConfiguration);
+            InputData newInputData = game::input::player_input_get(debugConfiguration);
+            {
+                std::unique_lock inputDataLock(inputDataMutex);
+                inputData = std::move(newInputData);
+            }
+            rendering::draw(constantRenderData, debugConfiguration, currentRenderData);
+            
+            {
+                std::shared_lock newestRenderDataLock(newestRenderDataMutex);
+                if (newestRenderDataRenewed) {
+                    currentRenderData = std::move(newestRenderData);
+                    newestRenderDataRenewed = false;
+                }
+            }
         }
     }
 }
@@ -176,25 +135,27 @@ void initialize_map(GameData &gameData) {
 
 int main() {
     DebugConfiguration debugConfiguration;
-    GameData gameData(generate_default_cam(640, 360), 640, 360);
-    gameData.tickRate = 128;
+    GameData gameData(640, 360);
     initialize_player(gameData);
     initialize_map(gameData);
     initialize_test_weapon(gameData);
-    PhysicsManagement physicsManagement(gameData, debugConfiguration, 640);
+    InputData inputData;
+    std::shared_mutex inputDataMutex;
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
+    ConstantRenderData constantRenderData(gameData.worldWidth, gameData.worldHeight);
+    RenderData currentRenderData;
+    std::shared_mutex newestRenderDataMutex;
+    bool newestRenderDataRenewed = false;
+    RenderData newestRenderData;
+    game::PhysicsManagement physicsManagement(gameData, debugConfiguration, newestRenderData, newestRenderDataRenewed, newestRenderDataMutex, 640);
     SetWindowState(FLAG_WINDOW_RESIZABLE);
-    SetConfigFlags(FLAG_WINDOW_TRANSPARENT);
     SetWindowSize(1280, 720);
-    SetTargetFPS(180);
-    gameData.renderTexture = LoadRenderTexture(gameData.worldWidth, gameData.worldHeight);
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Entering game-loop");
     physicsManagement.start();
-    game::entry(gameData, debugConfiguration);
+    game::entry(inputData, inputDataMutex, debugConfiguration, constantRenderData, currentRenderData, newestRenderData, newestRenderDataRenewed, newestRenderDataMutex);
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)
         fmt::println("Closing and unloading game");
-    UnloadRenderTexture(gameData.renderTexture);
     CloseWindow();
     std::unique_lock runningLock(gameData.runningMutex);
     gameData.running = false;
