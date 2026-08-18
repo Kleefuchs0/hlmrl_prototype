@@ -17,7 +17,7 @@ void physics::update_entities_friction(GameData &gameData, DebugConfiguration &d
     auto entityView = gameData.registry.view<Position, SpeedVector, HitBoxRadius, SpecificFloorFrictionSlowdown>();
     std::shared_lock mapLock(gameData.mapMutex);
     for (const entt::entity &entity : entityView) {
-        const auto &[position, speedVector, hitBoxRadius, specificFloorFritionSlowdown] = gameData.registry.get<Position, SpeedVector, HitBoxRadius, SpecificFloorFrictionSlowdown>(entity);
+        const auto &[position, speedVector, hitBoxRadius, specificFloorFritionSlowdown] = entityView.get<Position, SpeedVector, HitBoxRadius, SpecificFloorFrictionSlowdown>(entity);
         update_entity_floor_friction(gameData, debugConfiguration, position, speedVector, hitBoxRadius, specificFloorFritionSlowdown, frameTime);
     }
 }

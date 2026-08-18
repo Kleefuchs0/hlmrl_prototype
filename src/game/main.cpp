@@ -3,11 +3,9 @@
 #include "game/RenderData.hpp"
 #include "lib/Acceleration.hpp"
 #include "lib/BodyRotation.hpp"
-#include "lib/BodyRotationMutex.hpp"
 #include "lib/DebugConfiguration.hpp"
 #include "game/PhysicsManagement.hpp"
 #include "lib/PickUpMarker.hpp"
-#include "lib/PositionMutex.hpp"
 #include "lib/SpecificFloorFrictionSlowdown.hpp"
 #include "lib/SpeedVector.hpp"
 #include "lib/EVector2.hpp"
@@ -17,7 +15,6 @@
 #include "lib/PlayerMarker.hpp"
 #include "lib/Position.hpp"
 #include "lib/BodySize.hpp"
-#include "lib/SpeedVectorMutex.hpp"
 #include "lib/WeaponMarker.hpp"
 #include "lib/constants.hpp"
 #include "fmt/core.h"
@@ -80,27 +77,15 @@ namespace game {
     }
 }
 
-Camera2D generate_default_cam(int worldWidth, int worldHeight) {
-    Camera2D cam;
-    cam.offset = {static_cast<float>(worldWidth) / 2, static_cast<float>(worldHeight) / 2};
-    cam.rotation = 0;
-    cam.target = {0, 0};
-    cam.zoom = 1;
-    return cam;
-}
-
 void initialize_player(GameData &gameData) {
     auto playerEntity = gameData.registry.create();
     gameData.registry.emplace<PlayerMarker>(playerEntity);
     gameData.registry.emplace<Position>(playerEntity, gameData.map.tile_size() * 2, gameData.map.tile_size() * 2);
-    gameData.registry.emplace<PositionMutex>(playerEntity);
     gameData.registry.emplace<BodySize>(playerEntity, gameData.map.tile_size(), gameData.map.tile_size());
     gameData.registry.emplace<BodyRotation>(playerEntity, 70);
-    gameData.registry.emplace<BodyRotationMutex>(playerEntity);
     gameData.registry.emplace<Acceleration>(playerEntity, 3000);
     gameData.registry.emplace<HitBoxRadius>(playerEntity, gameData.map.tile_size() / 2.5);
     gameData.registry.emplace<SpeedVector>(playerEntity, 0, 0);
-    gameData.registry.emplace<SpeedVectorMutex>(playerEntity);
     gameData.registry.emplace<SpecificFloorFrictionSlowdown>(playerEntity, 2);
 }
 
@@ -109,11 +94,9 @@ void initialize_test_weapon(GameData &gameData) {
     gameData.registry.emplace<WeaponMarker>(weaponEntity);
     gameData.registry.emplace<PickUpMarker>(weaponEntity);
     gameData.registry.emplace<Position>(weaponEntity, gameData.map.tile_size() * 4, gameData.map.tile_size() * 4);
-    gameData.registry.emplace<PositionMutex>(weaponEntity);
     gameData.registry.emplace<BodySize>(weaponEntity, gameData.map.tile_size() / 2, gameData.map.tile_size() / 2);
     gameData.registry.emplace<HitBoxRadius>(weaponEntity, gameData.map.tile_size() / 5);
     gameData.registry.emplace<BodyRotation>(weaponEntity, 0);
-    gameData.registry.emplace<BodyRotationMutex>(weaponEntity);
 }
 
 void initialize_map(GameData &gameData) {
@@ -139,8 +122,8 @@ int main() {
     initialize_player(gameData);
     initialize_map(gameData);
     initialize_test_weapon(gameData);
-    InputData inputData;
     std::shared_mutex inputDataMutex;
+    InputData inputData;
     InitWindow(gameData.worldWidth, gameData.worldHeight, "hlmrl");
     ConstantRenderData constantRenderData(gameData.worldWidth, gameData.worldHeight);
     RenderData currentRenderData;

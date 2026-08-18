@@ -1,11 +1,9 @@
 #include "game/rendering.hpp"
 #include "game/ConstantRenderData.hpp"
 #include "game/RenderData.hpp"
-#include "lib/BodyRotationMutex.hpp"
 #include "lib/DebugConfiguration.hpp"
 #include "lib/HitBoxRadius.hpp"
 #include "lib/PlayerMarker.hpp"
-#include "lib/PositionMutex.hpp"
 #include "raylib.h"
 #include <entt/entity/fwd.hpp>
 #include <fmt/base.h>
@@ -19,7 +17,7 @@ namespace game {
             Camera2D makeCamera(const GameData &gameData, const int worldWidth, int worldHeight) {
                 const auto &playerView = gameData.registry.view<PlayerMarker, Position>();
                 for (const entt::entity &player : playerView) {
-                    const Position &pos = gameData.registry.get<Position>(player);
+                    const Position &pos = playerView.get<Position>(player);
                     return {
                         {static_cast<float>(worldWidth) / 2, static_cast<float>(worldHeight) / 2},
                         pos,
@@ -73,9 +71,7 @@ namespace game {
                 }
 
             namespace singular {
-                RenderObject makeEntity([[maybe_unused]]const GameData &gameData, [[maybe_unused]] const DebugConfiguration &debugConfiguration, const Position &position, PositionMutex &positionMutex, const BodySize &bodySize, const BodyRotation &bodyRotation, BodyRotationMutex &bodyRotationMutex) {
-                    std::shared_lock positionLock(positionMutex);
-                    std::shared_lock bodyRotationLock(bodyRotationMutex);
+                RenderObject makeEntity([[maybe_unused]]const GameData &gameData, [[maybe_unused]] const DebugConfiguration &debugConfiguration, const Position &position, const BodySize &bodySize, const BodyRotation &bodyRotation) {
                     return {{0, 0, static_cast<uint16_t>(bodySize.x), static_cast<uint16_t>(bodySize.y)}, WHITE, {position.x, position.y}, {bodySize.x / 2, bodySize.y / 2}, bodyRotation.value()};
                 }
             }
@@ -83,10 +79,11 @@ namespace game {
             RenderLayer makeEntityLayer(GameData &gameData, DebugConfiguration &debugConfiguration) {
                 RenderLayer renderLayer;
                 entt::registry &registry = gameData.registry;
-                auto entity_view = gameData.registry.view<Position, PositionMutex, BodySize, HitBoxRadius, BodyRotation, BodyRotationMutex>();
-                for (const entt::entity &entity : entity_view) {
-                    const auto &[position, positionMutex, bodySize, bodyRotation, bodyRotationMutex, hitBoxRadius] = registry.get<Position, PositionMutex, BodySize, BodyRotation, BodyRotationMutex, HitBoxRadius>(entity);
-                    renderLayer.objects.push_back(singular::makeEntity(gameData, debugConfiguration, position, positionMutex, bodySize, bodyRotation, bodyRotationMutex));
+                auto entityView = registry.view<Position, BodySize, HitBoxRadius, BodyRotation>();
+                renderLayer.objects.reserve(entityView.size_hint());
+                for (const entt::entity &entity : entityView) {
+                    const auto &[position, bodySize, bodyRotation, hitBoxRadius] = entityView.get<Position, BodySize, BodyRotation, HitBoxRadius>(entity);
+                    renderLayer.objects.push_back(singular::makeEntity(gameData, debugConfiguration, position, bodySize, bodyRotation));
                 }
                 return renderLayer;
             }

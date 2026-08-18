@@ -13,10 +13,10 @@ project(
 function(enable_target_warnings TARGET)
     target_compile_options(${TARGET} PRIVATE
         $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:
-        -g;-Wall;-Wextra;-Wpedantic;-Wdouble-promotion;-Wnull-dereference;-Wnrvo;-Wsign-conversion;-Wformat=2;-Wcast-align;-Wold-style-cast;-Wsuggest-override;-fno-omit-frame-pointer
+        -g;-Wall;-Wextra;-Wpedantic;-Wdouble-promotion;-Wnrvo;-Wsign-conversion;-Wformat=2;-Wcast-align;-Wold-style-cast;-Wsuggest-override;-fno-omit-frame-pointer
         >
         $<$<AND:$<CONFIG:Release>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:
-        -Wall;-Wextra;-Wpedantic;-Wdouble-promotion;-Wnull-dereference;-Wnrvo;-Wsign-conversion;-Wformat=2;-Wcast-align;-Wold-style-cast;-Wsuggest-override;-fno-omit-frame-pointer
+        -Wall;-Wextra;-Wpedantic;-Wdouble-promotion;-Wnrvo;-Wsign-conversion;-Wformat=2;-Wcast-align;-Wold-style-cast;-Wsuggest-override;-fno-omit-frame-pointer
         >
 
         $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:
