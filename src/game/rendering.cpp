@@ -93,19 +93,12 @@ namespace game {
 
 RenderData rendering::internal::process_game_data_to_render_data(GameData &gameData, [[maybe_unused]] DebugConfiguration &debugConfiguration) {
     RenderData renderData;
-    {
-        std::shared_lock worldSizeLock(gameData.worldSizeMutex);
-        renderData.worldWidth = gameData.worldWidth;
-        renderData.worldHeight = gameData.worldHeight;
-    }
+    renderData.worldWidth = gameData.worldWidth;
+    renderData.worldHeight = gameData.worldHeight;
     renderData.cam = rendering::internal::makeCamera(gameData, renderData.worldWidth, renderData.worldHeight);
     renderData.backgroundColor = BLUE;
     renderData.screenTint = WHITE;
-    {
-        std::shared_lock mapLock(gameData.mapMutex);
-        renderData.layers.push_back(makeMapLayer(gameData.map, renderData.cam, renderData.worldWidth, renderData.worldHeight));
-    }
-    std::shared_lock registryLock(gameData.registryMutex);
+    renderData.layers.push_back(makeMapLayer(gameData.map, renderData.cam, renderData.worldWidth, renderData.worldHeight));
     renderData.layers.push_back(makeEntityLayer(gameData, debugConfiguration));
     return renderData;
 }
