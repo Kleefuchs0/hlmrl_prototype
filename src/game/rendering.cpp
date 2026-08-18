@@ -72,7 +72,7 @@ namespace game {
 
             namespace singular {
                 RenderObject makeEntity([[maybe_unused]]const GameData &gameData, [[maybe_unused]] const DebugConfiguration &debugConfiguration, const Position &position, const BodySize &bodySize, const BodyRotation &bodyRotation) {
-                    return {{0, 0, static_cast<uint16_t>(bodySize.x), static_cast<uint16_t>(bodySize.y)}, WHITE, {position.x, position.y}, {bodySize.x / 2, bodySize.y / 2}, bodyRotation.value()};
+                    return {{0, 0, static_cast<uint16_t>(bodySize.x), static_cast<uint16_t>(bodySize.y)}, WHITE, {position.x, position.y}, {bodySize.x, bodySize.y}, bodyRotation.value()};
                 }
             }
 
