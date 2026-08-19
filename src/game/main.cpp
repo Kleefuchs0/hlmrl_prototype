@@ -5,6 +5,7 @@
 #include "lib/BodyRotation.hpp"
 #include "lib/DebugConfiguration.hpp"
 #include "game/PhysicsManagement.hpp"
+#include "lib/MaxSpeed.hpp"
 #include "lib/PickUpMarker.hpp"
 #include "lib/SpecificFloorFrictionSlowdown.hpp"
 #include "lib/SpeedVector.hpp"
@@ -84,10 +85,11 @@ void initialize_player(GameData &gameData) {
     gameData.registry.emplace<Position>(playerEntity, gameData.map.tile_size() * 2, gameData.map.tile_size() * 2);
     gameData.registry.emplace<BodySize>(playerEntity, gameData.map.tile_size(), gameData.map.tile_size());
     gameData.registry.emplace<BodyRotation>(playerEntity, 70);
-    gameData.registry.emplace<Acceleration>(playerEntity, 1500);
+    gameData.registry.emplace<Acceleration>(playerEntity, 5000);
+    gameData.registry.emplace<MaxSpeed>(playerEntity, 400);
     gameData.registry.emplace<HitBoxRadius>(playerEntity, gameData.map.tile_size() / 2.5);
     gameData.registry.emplace<SpeedVector>(playerEntity, 0, 0);
-    gameData.registry.emplace<SpecificFloorFrictionSlowdown>(playerEntity, 2);
+    gameData.registry.emplace<SpecificFloorFrictionSlowdown>(playerEntity, 3);
 }
 
 void initialize_test_weapon(GameData &gameData) {

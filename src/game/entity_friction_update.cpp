@@ -4,7 +4,7 @@
 using namespace game;
 
 void physics::update_entity_floor_friction(GameData &gameData, const DebugConfiguration &debugConfiguration, Position &position, SpeedVector &speedVector, HitBoxRadius &hitBoxRadius, SpecificFloorFrictionSlowdown &specificFloorFrictionSlowdown, const float frameTime) {
-    std::array<TileType, 4> tiles = get_map_collision_tiles(position, hitBoxRadius, gameData.map, debugConfiguration);
+    std::array<TileType, 4> tiles = get_map_collision_tiles(position, hitBoxRadius, gameData.map);
     for (TileType tile : tiles) {
         if (tile.value() >= TILE_TYPE_SECTION_START_FLOORS && tile.value() < TILE_TYPE_SECTION_START_WALLS) {
             speedVector /= 1 + specificFloorFrictionSlowdown.value() * frameTime;

@@ -38,7 +38,7 @@ namespace game {
 
                     std::pair<std::pair<size_t, size_t>, std::pair<size_t, size_t>> tileRanges;
                     tileRanges.first = {worldScreenWindowRange.first.x / TILE_SIZE, worldScreenWindowRange.first.y / TILE_SIZE};
-                    tileRanges.second = {std::ceil(worldScreenWindowRange.second.x / TILE_SIZE) + 1, std::ceil(worldScreenWindowRange.second.y / TILE_SIZE) + 1};
+                    tileRanges.second = {std::ceil(worldScreenWindowRange.second.x / TILE_SIZE), std::ceil(worldScreenWindowRange.second.y / TILE_SIZE)};
 
                     if (tileRanges.first.first >= MAP_WIDTH)     // Correct too big values
                         tileRanges.first.first = 0;
@@ -98,7 +98,7 @@ RenderData rendering::internal::process_game_data_to_render_data(GameData &gameD
     renderData.cam = rendering::internal::makeCamera(gameData, renderData.worldWidth, renderData.worldHeight);
     renderData.backgroundColor = BLUE;
     renderData.screenTint = WHITE;
-    renderData.layers.push_back(makeMapLayer(gameData.map, renderData.cam, renderData.worldWidth, renderData.worldHeight));
+    renderData.mapLayer = makeMapLayer(gameData.map, renderData.cam, renderData.worldWidth, renderData.worldHeight);
     renderData.layers.push_back(makeEntityLayer(gameData, debugConfiguration));
     return renderData;
 }
@@ -109,6 +109,9 @@ void rendering::draw(ConstantRenderData &constantRenderData, DebugConfiguration 
     BeginTextureMode(constantRenderData.renderTexture);
     BeginMode2D(renderData.cam);
     ClearBackground(renderData.backgroundColor);
+    for (const RenderObject &object : renderData.mapLayer.objects) {
+        DrawRectanglePro({object.pos.x, object.pos.y, object.size.x, object.size.y}, {0, 0}, object.rotation.value(), object.tint);
+    }
     for (const RenderLayer &layer : renderData.layers) {
         for (const RenderObject &object : layer.objects) {
             DrawRectanglePro({object.pos.x, object.pos.y, object.size.x, object.size.y}, {object.size.x / 2, object.size.y / 2}, object.rotation.value(), object.tint);

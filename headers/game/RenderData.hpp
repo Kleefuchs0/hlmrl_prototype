@@ -3,6 +3,7 @@
 
 struct RenderData {
     std::vector<RenderLayer> layers;
+    RenderLayer mapLayer;
     Color screenTint = WHITE;
     Color backgroundColor = BLUE;
     int worldWidth = 0;

@@ -23,7 +23,7 @@ TEST_CASE("Testing functions for entity game interactions", "[entity_game_intera
         HitBoxRadius radius = 32.0f;
         DebugConfiguration debugConfiguration;
         debugConfiguration.logLevel = LogLevel::DEBUG;
-        std::array<TileType, 4> collisionTiles = get_map_collision_tiles(pos, radius, map, debugConfiguration);
+        std::array<TileType, 4> collisionTiles = get_map_collision_tiles(pos, radius, map);
         REQUIRE(collisionTiles[0] == TileType(tile_type::EMPTY));
         REQUIRE(collisionTiles[1] == TileType(tile_type::FLOOR));
         REQUIRE(collisionTiles[2] == TileType(tile_type::FLOOR));
@@ -49,21 +49,21 @@ TEST_CASE("Testing functions for entity game interactions", "[entity_game_intera
         debugConfiguration.logLevel = LogLevel::DEBUG;
 
         {
-            entity_move_return_code retval = try_move_entity(pos, radius, map, {-32, -32}, debugConfiguration);
+            entity_move_return_code retval = try_move_entity(pos, radius, map, {-32, -32});
             REQUIRE(retval == entity_move_return_code::BOTH_MOVED);
             REQUIRE(pos.x == 96.0f);
             REQUIRE(pos.y == 96.0f);
         }
 
         {
-            entity_move_return_code retval = try_move_entity(pos, radius, map, {-16, 0}, debugConfiguration);
+            entity_move_return_code retval = try_move_entity(pos, radius, map, {-16, 0});
             REQUIRE(retval == entity_move_return_code::Y_MOVED);
             REQUIRE(pos.x == 96.0f);
             REQUIRE(pos.y == 96.0f);
         }
 
         {
-            entity_move_return_code retval = try_move_entity(pos, radius, map, {-16, -16}, debugConfiguration);
+            entity_move_return_code retval = try_move_entity(pos, radius, map, {-16, -16});
             REQUIRE(retval == entity_move_return_code::NONE_MOVED);
             REQUIRE(pos.x == 96.0f);
             REQUIRE(pos.y == 96.0f);
