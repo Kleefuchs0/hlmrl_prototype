@@ -58,10 +58,10 @@ namespace game {
                                 case tile_type::EMPTY:
                                     continue;           // Skip empty ones
                                 case tile_type::WALL:
-                                    color = GRAY;
+                                    color = DARKGRAY;
                                     break;
                                 case tile_type::FLOOR:
-                                    color = DARKBLUE;
+                                    color = MAGENTA;
                                     break;
                             }
                             layer.objects.push_back({ {0, 0, static_cast<uint16_t>(TILE_SIZE), static_cast<uint16_t>(TILE_SIZE)}, color, {x * TILE_SIZE, y * TILE_SIZE}, {TILE_SIZE, TILE_SIZE}, 0});
@@ -96,7 +96,7 @@ RenderData rendering::internal::process_game_data_to_render_data(GameData &gameD
     renderData.worldWidth = gameData.worldWidth;
     renderData.worldHeight = gameData.worldHeight;
     renderData.cam = rendering::internal::makeCamera(gameData, renderData.worldWidth, renderData.worldHeight);
-    renderData.backgroundColor = BLUE;
+    renderData.backgroundColor = DARKBLUE;
     renderData.screenTint = WHITE;
     renderData.mapLayer = makeMapLayer(gameData.map, renderData.cam, renderData.worldWidth, renderData.worldHeight);
     renderData.layers.push_back(makeEntityLayer(gameData, debugConfiguration));
