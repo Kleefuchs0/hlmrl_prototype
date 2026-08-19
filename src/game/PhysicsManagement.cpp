@@ -44,7 +44,7 @@ namespace game {
                 accumulator += std::min(frameTime, maxAccumulatorAddition);
 
 
-                if(accumulator >= tickTimeTarget) {
+                while(accumulator >= tickTimeTarget) {
                     {
                         std::shared_lock newestInputDataLock(*newestInputDataMutex);
                         if (*newestInputDataRenewed == true) {
@@ -64,6 +64,8 @@ namespace game {
                     }
                     accumulator -= tickTimeTarget;
                 }
+
+                std::this_thread::sleep_for(std::chrono::duration<double>(tickTimeTarget - accumulator) / 1.1);
 
             }
         }
