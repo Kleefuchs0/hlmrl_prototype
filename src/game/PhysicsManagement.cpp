@@ -3,6 +3,7 @@
 #include "game/pickups_update.hpp"
 #include <algorithm>
 #include <chrono>
+#include <fmt/base.h>
 #include <mutex>
 #include "game/entity_movement_update.hpp"
 #include "game/entity_fricition_update.hpp"
@@ -12,6 +13,8 @@ namespace game {
     namespace physics {
         void update(GameData *gameData, DebugConfiguration *debugConfiguration, RenderData *newestRenderData, bool *newestRenderDataRenewed, std::shared_mutex *newestRenderDataMutex, InputData *newestInputData, bool *newestInputDataRenewed, std::shared_mutex *newestInputDataMutex, PhysicsManagementSettings *settings) {
 
+            auto start = std::chrono::steady_clock::now();
+            int tick = 0;
             InputData inputData = {};
 
             auto previous = std::chrono::steady_clock::now();
@@ -43,8 +46,8 @@ namespace game {
 
                 accumulator += std::min(frameTime, maxAccumulatorAddition);
 
-
                 while(accumulator >= tickTimeTarget) {
+                    tick++;
                     {
                         std::shared_lock newestInputDataLock(*newestInputDataMutex);
                         if (*newestInputDataRenewed == true) {
@@ -53,10 +56,10 @@ namespace game {
                         }
                     }
 
-                    game::input::process(*gameData, *debugConfiguration, inputData, accumulator);
-                    game::physics::update_pickups(*gameData, *debugConfiguration, accumulator);
-                    game::physics::update_entities_friction(*gameData, *debugConfiguration, accumulator);
-                    game::physics::movement::update_entities_movement(*gameData, *debugConfiguration, accumulator);
+                    game::input::process(*gameData, *debugConfiguration, inputData, tickTimeTarget);
+                    game::physics::update_pickups(*gameData, *debugConfiguration, tickTimeTarget);
+                    game::physics::movement::update_entities_movement(*gameData, *debugConfiguration, tickTimeTarget);
+                    game::physics::update_entities_friction(*gameData, *debugConfiguration, tickTimeTarget);
                     {
                         std::unique_lock newestRenderDataLock(*newestRenderDataMutex);
                         *newestRenderData = game::rendering::internal::process_game_data_to_render_data(*gameData, *debugConfiguration);

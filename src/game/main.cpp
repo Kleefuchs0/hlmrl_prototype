@@ -23,6 +23,7 @@
 #include "game/rendering.hpp"
 #include "lib/tile_type.hpp"
 #include <cstddef>
+#include <fmt/base.h>
 #include <mutex>
 #include <raylib.h>
 #include <raymath.h>
@@ -50,9 +51,10 @@ namespace game {
             return calculatedVector;
         }
 
-        InputData player_input_get([[maybe_unused]] DebugConfiguration &debugConfiguration) {
+        InputData input_get([[maybe_unused]] const DebugConfiguration &debugConfiguration, int worldWidth, int worldHeight, const Camera2D &cam) {
             InputData data;
-            data.cursorPosition = GetMousePosition();
+            Position mousePos = GetMousePosition();
+            data.cursorPosition = GetScreenToWorld2D({mousePos.x / (static_cast<float>(GetScreenWidth()) / static_cast<float>(worldWidth)), mousePos.y / (GetScreenHeight() / static_cast<float>(worldHeight))}, cam);
             data.relativeMovement = player_input_get_relative_movement();
             return data;
         }
@@ -60,7 +62,7 @@ namespace game {
 
     void entry(DebugConfiguration &debugConfiguration, InputData &nextInputData, bool &nextInputDataRenewed, std::shared_mutex &nextInputDataMutex, ConstantRenderData &constantRenderData, RenderData &currentRenderData, RenderData &newestRenderData, bool &newestRenderDataRenewed, std::shared_mutex &newestRenderDataMutex) {
         while (!WindowShouldClose()) {
-            InputData newInputData = game::input::player_input_get(debugConfiguration);
+            InputData newInputData = game::input::input_get(debugConfiguration, currentRenderData.worldWidth, currentRenderData.worldHeight, currentRenderData.cam);
             {
                 std::unique_lock inputDataLock(nextInputDataMutex);
                 nextInputData = std::move(newInputData);
@@ -135,7 +137,7 @@ int main() {
     bool newestRenderDataRenewed = false;
     RenderData newestRenderData;
     game::PhysicsManagement physicsManagement(gameData, debugConfiguration, newestRenderData, newestRenderDataRenewed, newestRenderDataMutex, newestInputData, newestInputDataRenewed, newestInputDataMutex, 640);
-    SetTargetFPS(0);
+    SetTargetFPS(180);
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetWindowSize(1280, 720);
     if (debugConfiguration.logLevel >= LogLevel::DEBUG)

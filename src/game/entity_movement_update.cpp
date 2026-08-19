@@ -2,6 +2,7 @@
 #include "lib/Acceleration.hpp"
 #include "lib/MaxSpeed.hpp"
 #include "lib/entity_try_move.hpp"
+#include <fmt/base.h>
 
 using namespace game;
 
